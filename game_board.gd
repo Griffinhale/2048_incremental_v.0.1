@@ -61,6 +61,7 @@ func _unhandled_input(event: InputEvent):
 			#print(dir)
 			if shift_tiles(dir):
 				spawn_post_move_tile()
+				verify_grid_consistency()
 
 func _draw():
 	for row in ROWS:
@@ -117,11 +118,13 @@ func shift_tiles(dir: int) -> bool:
 	match dir:
 		Direction.LEFT:
 			for row_idx in range(ROWS):
+				print(row_idx)
 				var row = tile_grid[row_idx]
 				moved = shift_line(row, true, row_idx) or moved
 
 		Direction.RIGHT:
 			for row_idx in range(ROWS):
+				print(row_idx)
 				var row = tile_grid[row_idx].duplicate()
 				row.reverse()
 				moved = shift_line(row, true, row_idx) or moved
@@ -184,12 +187,13 @@ func shift_line(line: Array, is_row: bool, index: int) -> bool:
 	
 	# overwrite original line
 	for i in range(line.size()):
-		line[i] = new_line[i]
+		var tile: Tile = new_line[i]
+		line[i] = tile
 		if line[i]:
 			var grid_pos = Vector2i(i, index) if is_row else Vector2i(index, i)
-			var new_pos = get_cell_screen_position(grid_pos)  
 			line[i].move_to_grid(grid_pos, cell_size, board_origin)
-
+			tile_grid[grid_pos.y][grid_pos.x] = tile
+			
 	#debug_print_line(line)
 	# Re-check if any movement actually happened
 	var new_values := line.map(func(t): return t.value if t else null)
@@ -202,6 +206,17 @@ func spawn_post_move_tile():
 		var pos = empty[0]
 		var val = spawner.get_next_tile_value()
 		_on_tile_spawned(val, pos)
+
+
+func verify_grid_consistency():
+	for y in range(ROWS):
+		for x in range(COLS):
+			var tile = tile_grid[y][x]
+			if tile != null:
+				if not tile is Tile:
+					print("❌ tile_grid[%d][%d] is not a Tile! Found: %s" % [y, x, tile])
+				elif tile.grid_position != Vector2i(x, y):
+					print("⚠️ tile at [%d][%d] has wrong grid_position: %s" % [y, x, tile.grid_position])
 
 
 #game over check
