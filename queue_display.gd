@@ -1,22 +1,14 @@
-extends VBoxContainer
+extends Panel
 
-@onready var board_canvas: Control = $BoardPanel/BoardContainer/BoardCanvas
-@onready var score_label: Label = $TopBarPanel/TopBar/ScoreValue
-@onready var queue_tiles: HBoxContainer = $QueuePanel/QueueBar/OnDeckTilesBackground/QueueTiles
-@onready var next_tile_container: Control = $QueuePanel/QueueBar/NextTileBackground
+@onready var board_canvas: Control = $"../BoardPanel/BoardContainer/BoardCanvas"
+@onready var queue_tiles: HBoxContainer = $QueueBar/OnDeckTilesBackground/QueueTiles
+@onready var next_tile_container: Control = $QueueBar/NextTileBackground
 
-var score := 0:
-	set(value):
-		score = value
-		score_label.text = str(score)
 
 func _ready():
 	board_canvas.queue_updated.connect(_on_queue_updated)
-	board_canvas.tile_merged.connect(_on_tile_merged)
 	update_queue_display()
 
-func _on_tile_merged(value: int) -> void:
-	score += value
 
 func _on_queue_updated(queue: Array):
 	update_queue_display()

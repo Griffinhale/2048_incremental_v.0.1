@@ -13,12 +13,21 @@ var board_origin: Vector2
 var tile_grid := []
 var game_over_screen: Node = null
 var move_count := 0
-var current_score := 0  # Optional; you can update this later via merge logic
+var game_start_time: float = 0.0
+var merge_count: int = 0
+var peak_combo_score: int = 0
+
+
+var current_score := 0:
+	set(value):
+		current_score = value
+		emit_signal("score_changed", value)
 
 # === Signals ===
 signal tile_merged(value: int)
 signal queue_updated(queue: Array)
-signal game_over(score: int, moves: int)
+signal game_over(stats: GameStats)
+signal score_changed(new_score: int)
 
 # === Tile spawner instance ===
 @onready var spawner = preload("res://Spawner.gd").new()
@@ -48,6 +57,7 @@ func _on_tile_spawned(value: int, pos: Vector2):
 	var tile = TILE_SCENE.instantiate()
 	tile.value = value
 	add_child(tile)
+	StatsTracker.mark_tile_seen(value)
 
 	var grid_pos = Vector2i(pos)
 	var tile_size = cell_size
@@ -168,9 +178,12 @@ func shift_tiles(direction: int) -> bool:
 					next_tile.value *= 2
 					var merged_value = next_tile.value
 					next_tile.visited = true
+					merge_count += 1
+					current_score += merged_value
+					if merge_count > peak_combo_score:
+						peak_combo_score = merge_count
 					tile.queue_free()
 					tile_grid[pos.y][pos.x] = null
-					tile_merged.emit(merged_value)
 					moved = true
 					break
 				else:
@@ -227,7 +240,25 @@ func get_highest_tile_value() -> int:
 
 # === Trigger switch to game over view ===
 func trigger_game_over():
-	emit_signal("game_over", current_score, move_count)
+	var duration = Time.get_ticks_msec() / 1000.0 - game_start_time
+	var stats = GameStats.new()
+	stats.score = current_score
+	stats.moves = move_count
+	stats.duration = duration
+	stats.max_tile = get_highest_tile_value()
+	stats.merges = merge_count
+	stats.combo_peak = peak_combo_score
+	stats.merge_efficiency = merge_count / float(move_count)
+	emit_signal("game_over", stats)
+	# Optionally: calculate empty cell ratio
+	#var empty_count = 0
+	#for row in tile_grid:
+		#for tile in row:
+			#if tile == null:
+				#empty_count += 1
+	#stats.empty_cell_ratio = float(empty_count) / (ROWS * COLS)
+
+	
 
 
 	#game_over_screen = GAME_OVER_SCENE.instantiate()
@@ -266,6 +297,7 @@ func reset_board():
 func _ready():
 	connect("resized", Callable(self, "calculate_board_geometry"))
 	calculate_board_geometry()
+	game_start_time = Time.get_ticks_msec() / 1000.0
 	get_tree().get_root().size_changed.connect(resize)
 
 	# Initialize empty grid with nulls

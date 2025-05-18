@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://cy5jlc4dsmjkb"]
+[gd_scene load_steps=2 format=3 uid="uid://cy5jlc4dsmjkb"]
 
 [ext_resource type="Script" uid="uid://cmrree35q08kr" path="res://generator_panel.gd" id="1_p2k8s"]
-[ext_resource type="PackedScene" uid="uid://bcroiv73v2c3j" path="res://GeneratorEntry.tscn" id="2_lw51p"]
 
 [node name="GeneratorPanel" type="Control"]
 layout_mode = 3
@@ -38,28 +37,4 @@ layout_mode = 2
 [node name="GeneratorList" type="VBoxContainer" parent="VBoxContainer/GeneratorContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="GeneratorEntry" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="GeneratorEntry2" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="GeneratorEntry3" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="GeneratorEntry4" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="GeneratorEntry5" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="GeneratorEntry6" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
-layout_mode = 2
 size_flags_vertical = 3

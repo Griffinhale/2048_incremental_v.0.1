@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 
 GeneratorManager="*res://generator_manager.gd"
 CurrencyManager="*res://currency_manager.gd"
+StatsTracker="*res://StatsTracker.gd"
 
 [display]
 

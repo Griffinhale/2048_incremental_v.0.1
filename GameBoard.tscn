@@ -1,8 +1,8 @@
 [gd_scene load_steps=11 format=3 uid="uid://bw04bwuopdtai"]
 
 [ext_resource type="Script" uid="uid://d0ww83e0cjjbr" path="res://game_ui_manager.gd" id="1_3fmbn"]
-[ext_resource type="Script" uid="uid://bi8itfklc4565" path="res://game_board.gd" id="1_u5pr3"]
 [ext_resource type="Script" uid="uid://ddhocvt6e08ll" path="res://board_canvas.gd" id="2_ocn0r"]
+[ext_resource type="Script" uid="uid://bi8itfklc4565" path="res://queue_display.gd" id="3_3fmbn"]
 [ext_resource type="PackedScene" uid="uid://cy5jlc4dsmjkb" path="res://GeneratorPanel.tscn" id="4_3fmbn"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ocn0r"]
@@ -123,7 +123,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 alignment = 1
-script = ExtResource("1_u5pr3")
 metadata/_edit_use_anchors_ = true
 
 [node name="TopBarPanel" type="Panel" parent="GameMargins/GameBoard"]
@@ -209,6 +208,10 @@ alignment = 1
 layout_mode = 2
 text = "Play Again"
 
+[node name="ConvertAndStash" type="Button" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons"]
+layout_mode = 2
+text = "Convert & Stash"
+
 [node name="IdleScreenSwap" type="Button" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons"]
 layout_mode = 2
 text = "See Generators"
@@ -243,6 +246,7 @@ custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_trxdi")
+script = ExtResource("3_3fmbn")
 
 [node name="QueueBar" type="HBoxContainer" parent="GameMargins/GameBoard/QueuePanel"]
 layout_mode = 1
@@ -292,3 +296,4 @@ grow_vertical = 2
 layout_mode = 2
 
 [connection signal="game_over" from="GameMargins/GameBoard/BoardPanel/BoardContainer/BoardCanvas" to="GameUIManager" method="_on_board_canvas_game_over"]
+[connection signal="visibility_changed" from="IdleMargins/GeneratorPanel" to="IdleMargins/GeneratorPanel" method="_on_visibility_changed"]
