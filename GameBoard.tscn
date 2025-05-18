@@ -94,7 +94,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="GameUIManager" type="Node" parent="."]
+[node name="ScreenManager" type="Node" parent="."]
 script = ExtResource("1_3fmbn")
 
 [node name="BackgroundPanel" type="Panel" parent="."]
@@ -295,5 +295,5 @@ grow_vertical = 2
 [node name="GeneratorPanel" parent="IdleMargins" instance=ExtResource("4_3fmbn")]
 layout_mode = 2
 
-[connection signal="game_over" from="GameMargins/GameBoard/BoardPanel/BoardContainer/BoardCanvas" to="GameUIManager" method="_on_board_canvas_game_over"]
+[connection signal="game_over" from="GameMargins/GameBoard/BoardPanel/BoardContainer/BoardCanvas" to="ScreenManager" method="_on_board_canvas_game_over"]
 [connection signal="visibility_changed" from="IdleMargins/GeneratorPanel" to="IdleMargins/GeneratorPanel" method="_on_visibility_changed"]

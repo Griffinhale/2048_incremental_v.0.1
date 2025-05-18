@@ -54,6 +54,8 @@ func _input(event):
 		swap_screen()
 
 func show_game_screen():
+	if !game_board:
+		return
 	game_board.visible = true
 	idle_panel.visible = false
 	idle_margins.visible = false

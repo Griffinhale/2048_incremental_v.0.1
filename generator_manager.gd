@@ -116,8 +116,8 @@ func calculate_yield(gen: Dictionary) -> float:
 		"linear":
 			base *= level
 
-	if upgrade_manager:
-		mult *= upgrade_manager.get_generator_multiplier(gen["id"])
+	#if upgrade_manager:
+	#	mult *= upgrade_manager.get_generator_multiplier(gen["id"])
 
 	var curr_yield = base * mult * spread_bonus
 	return curr_yield
