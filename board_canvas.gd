@@ -6,7 +6,6 @@ extends Control
 const ROWS := 4
 const COLS := 4
 const TILE_SCENE := preload("res://Tile.tscn")
-const GAME_OVER_SCENE := preload("res://GameOverScreen.tscn")
 
 # === Board state ===
 var cell_size: Vector2
@@ -236,6 +235,30 @@ func trigger_game_over():
 	#game_over_screen.set_final_stats(current_score, move_count)
 	#game_over_screen.restart_requested.connect(_on_restart_requested)
 	#game_over_screen.scores_requested.connect(_on_scores_requested)
+func reset_board():
+	# Clear all child tiles
+	for row in tile_grid:
+		for tile in row:
+			if tile != null:
+				tile.queue_free()
+				tile = null
+
+	# Reset grid structure
+	tile_grid.clear()
+	for y in range(ROWS):
+		tile_grid.append([])
+		for x in range(COLS):
+			tile_grid[y].append(null)
+
+	# Reset state
+	move_count = 0
+	current_score = 0
+
+	# Reset spawner and spawn initial tiles
+	spawner.reset()
+	queue_updated.emit(spawner.get_queue())
+	queue_redraw()
+	print("Board reset complete")
 
 #endregion
 

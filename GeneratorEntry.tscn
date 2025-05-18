@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://bcroiv73v2c3j"]
+
+[node name="GeneratorEntry" type="HBoxContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label_ID" type="Label" parent="."]
+layout_mode = 2
+
+[node name="Label_Level" type="Label" parent="."]
+layout_mode = 2
+
+[node name="Label_LastYield" type="Label" parent="."]
+layout_mode = 2
+
+[node name="Button_LevelUp" type="Button" parent="."]
+layout_mode = 2

@@ -1,0 +1,65 @@
+[gd_scene load_steps=3 format=3 uid="uid://cy5jlc4dsmjkb"]
+
+[ext_resource type="Script" uid="uid://cmrree35q08kr" path="res://generator_panel.gd" id="1_p2k8s"]
+[ext_resource type="PackedScene" uid="uid://bcroiv73v2c3j" path="res://GeneratorEntry.tscn" id="2_lw51p"]
+
+[node name="GeneratorPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_p2k8s")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="StatsContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CurrencyDisplay" type="Label" parent="VBoxContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="GeneratorContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 4.64
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/GeneratorContainer"]
+layout_mode = 2
+
+[node name="GeneratorList" type="VBoxContainer" parent="VBoxContainer/GeneratorContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="GeneratorEntry" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GeneratorEntry2" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GeneratorEntry3" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GeneratorEntry4" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GeneratorEntry5" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GeneratorEntry6" parent="VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList" instance=ExtResource("2_lw51p")]
+layout_mode = 2
+size_flags_vertical = 3

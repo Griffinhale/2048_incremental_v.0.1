@@ -1,9 +1,9 @@
-[gd_scene load_steps=10 format=3 uid="uid://bw04bwuopdtai"]
+[gd_scene load_steps=11 format=3 uid="uid://bw04bwuopdtai"]
 
 [ext_resource type="Script" uid="uid://d0ww83e0cjjbr" path="res://game_ui_manager.gd" id="1_3fmbn"]
 [ext_resource type="Script" uid="uid://bi8itfklc4565" path="res://game_board.gd" id="1_u5pr3"]
-[ext_resource type="Script" uid="uid://cncj4wlwykl0h" path="res://top_bar_panel.gd" id="2_3fmbn"]
 [ext_resource type="Script" uid="uid://ddhocvt6e08ll" path="res://board_canvas.gd" id="2_ocn0r"]
+[ext_resource type="PackedScene" uid="uid://cy5jlc4dsmjkb" path="res://GeneratorPanel.tscn" id="4_3fmbn"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ocn0r"]
 bg_color = Color(0.737255, 0.556863, 0.443137, 0.752941)
@@ -27,6 +27,18 @@ expand_margin_left = 2.0
 expand_margin_top = 2.0
 expand_margin_right = 2.0
 expand_margin_bottom = 2.0
+
+[sub_resource type="GDScript" id="GDScript_p1wqh"]
+script/source = "extends Panel
+#
+#func _on_board_canvas_game_over(score: int, moves: int) -> void:
+	#$GameOverBox.visible = true
+	#$GameOverBox/Scores/ScoreLabel.text = \"Score: %s\" % score
+	#$GameOverBox/Scores/MovesLabel.text = \"Moves: %s\" % moves
+#
+	#var tween := get_tree().create_tween()
+	#tween.tween_property(self, \"custom_minimum_size:y\", 400, 0.3)
+"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p1wqh"]
 bg_color = Color(0.12, 0.16, 0.16, 1)
@@ -76,6 +88,7 @@ corner_radius_bottom_left = 999
 
 [node name="MainScene" type="Control"]
 layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -93,7 +106,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ocn0r")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="GameMargins" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
@@ -105,7 +118,7 @@ theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="GameBoard" type="VBoxContainer" parent="MarginContainer"]
+[node name="GameBoard" type="VBoxContainer" parent="GameMargins"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
@@ -113,14 +126,14 @@ alignment = 1
 script = ExtResource("1_u5pr3")
 metadata/_edit_use_anchors_ = true
 
-[node name="TopBarPanel" type="Panel" parent="MarginContainer/GameBoard"]
+[node name="TopBarPanel" type="Panel" parent="GameMargins/GameBoard"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_3fmbn")
-script = ExtResource("2_3fmbn")
+script = SubResource("GDScript_p1wqh")
 
-[node name="TopBar" type="HBoxContainer" parent="MarginContainer/GameBoard/TopBarPanel"]
+[node name="TopBar" type="HBoxContainer" parent="GameMargins/GameBoard/TopBarPanel"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -132,71 +145,85 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 0
 
-[node name="FrontSpacer" type="Control" parent="MarginContainer/GameBoard/TopBarPanel/TopBar"]
+[node name="FrontSpacer" type="Control" parent="GameMargins/GameBoard/TopBarPanel/TopBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 4.6
 
-[node name="ScorePrefix" type="Label" parent="MarginContainer/GameBoard/TopBarPanel/TopBar"]
+[node name="ScorePrefix" type="Label" parent="GameMargins/GameBoard/TopBarPanel/TopBar"]
 layout_mode = 2
 text = "Score: "
 
-[node name="ScoreValue" type="Label" parent="MarginContainer/GameBoard/TopBarPanel/TopBar"]
+[node name="ScoreValue" type="Label" parent="GameMargins/GameBoard/TopBarPanel/TopBar"]
 layout_mode = 2
 size_flags_stretch_ratio = 27.4
 
-[node name="MidSpacer" type="Control" parent="MarginContainer/GameBoard/TopBarPanel/TopBar"]
+[node name="MidSpacer" type="Control" parent="GameMargins/GameBoard/TopBarPanel/TopBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 4.6
 
-[node name="Menu" type="Button" parent="MarginContainer/GameBoard/TopBarPanel/TopBar"]
+[node name="Menu" type="Button" parent="GameMargins/GameBoard/TopBarPanel/TopBar"]
 custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "☰"
 
-[node name="BackSpacer" type="Control" parent="MarginContainer/GameBoard/TopBarPanel/TopBar"]
+[node name="BackSpacer" type="Control" parent="GameMargins/GameBoard/TopBarPanel/TopBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 4.6
 
-[node name="GameOverBox" type="VBoxContainer" parent="MarginContainer/GameBoard/TopBarPanel"]
+[node name="GameOverBox" type="VBoxContainer" parent="GameMargins/GameBoard/TopBarPanel"]
+visible = false
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -31.5
-offset_top = -27.0
-offset_right = 31.5
-offset_bottom = 27.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 0
 
-[node name="Label" type="Label" parent="MarginContainer/GameBoard/TopBarPanel/GameOverBox"]
+[node name="Label" type="Label" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox"]
+layout_mode = 2
+text = "Nice job."
+horizontal_alignment = 1
+
+[node name="Scores" type="HBoxContainer" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox/Scores"]
 layout_mode = 2
 
-[node name="Scores" type="HBoxContainer" parent="MarginContainer/GameBoard/TopBarPanel/GameOverBox"]
+[node name="MovesLabel" type="Label" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox/Scores"]
 layout_mode = 2
 
-[node name="ScoreLabel" type="Label" parent="MarginContainer/GameBoard/TopBarPanel/GameOverBox/Scores"]
+[node name="Buttons" type="HBoxContainer" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox"]
 layout_mode = 2
+mouse_filter = 0
+theme_override_constants/separation = 40
+alignment = 1
 
-[node name="MovesLabel" type="Label" parent="MarginContainer/GameBoard/TopBarPanel/GameOverBox/Scores"]
+[node name="Restart" type="Button" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons"]
 layout_mode = 2
+text = "Play Again"
 
-[node name="Buttons" type="HBoxContainer" parent="MarginContainer/GameBoard/TopBarPanel/GameOverBox"]
+[node name="IdleScreenSwap" type="Button" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons"]
 layout_mode = 2
+text = "See Generators"
 
-[node name="BoardPanel" type="Panel" parent="MarginContainer/GameBoard"]
+[node name="Stats" type="Button" parent="GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons"]
+layout_mode = 2
+text = "Stats"
+
+[node name="BoardPanel" type="Panel" parent="GameMargins/GameBoard"]
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 4.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_p1wqh")
 
-[node name="BoardContainer" type="CenterContainer" parent="MarginContainer/GameBoard/BoardPanel"]
+[node name="BoardContainer" type="CenterContainer" parent="GameMargins/GameBoard/BoardPanel"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -207,17 +234,17 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
 
-[node name="BoardCanvas" type="Control" parent="MarginContainer/GameBoard/BoardPanel/BoardContainer"]
+[node name="BoardCanvas" type="Control" parent="GameMargins/GameBoard/BoardPanel/BoardContainer"]
 layout_mode = 2
 script = ExtResource("2_ocn0r")
 
-[node name="QueuePanel" type="Panel" parent="MarginContainer/GameBoard"]
+[node name="QueuePanel" type="Panel" parent="GameMargins/GameBoard"]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_trxdi")
 
-[node name="QueueBar" type="HBoxContainer" parent="MarginContainer/GameBoard/QueuePanel"]
+[node name="QueueBar" type="HBoxContainer" parent="GameMargins/GameBoard/QueuePanel"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -229,12 +256,12 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 0
 
-[node name="OnDeckTilesBackground" type="Panel" parent="MarginContainer/GameBoard/QueuePanel/QueueBar"]
+[node name="OnDeckTilesBackground" type="Panel" parent="GameMargins/GameBoard/QueuePanel/QueueBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 4.0
 
-[node name="QueueTiles" type="HBoxContainer" parent="MarginContainer/GameBoard/QueuePanel/QueueBar/OnDeckTilesBackground"]
+[node name="QueueTiles" type="HBoxContainer" parent="GameMargins/GameBoard/QueuePanel/QueueBar/OnDeckTilesBackground"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -243,14 +270,25 @@ size_flags_horizontal = 4
 theme_override_constants/separation = 30
 alignment = 1
 
-[node name="ArrowLabel" type="Label" parent="MarginContainer/GameBoard/QueuePanel/QueueBar"]
+[node name="ArrowLabel" type="Label" parent="GameMargins/GameBoard/QueuePanel/QueueBar"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "→"
 
-[node name="NextTileBackground" type="Panel" parent="MarginContainer/GameBoard/QueuePanel/QueueBar"]
+[node name="NextTileBackground" type="Panel" parent="GameMargins/GameBoard/QueuePanel/QueueBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_6xh2g")
 
-[connection signal="game_over" from="MarginContainer/GameBoard/BoardPanel/BoardContainer/BoardCanvas" to="GameUIManager" method="_on_board_canvas_game_over"]
+[node name="IdleMargins" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GeneratorPanel" parent="IdleMargins" instance=ExtResource("4_3fmbn")]
+layout_mode = 2
+
+[connection signal="game_over" from="GameMargins/GameBoard/BoardPanel/BoardContainer/BoardCanvas" to="GameUIManager" method="_on_board_canvas_game_over"]
