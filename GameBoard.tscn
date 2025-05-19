@@ -114,9 +114,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
+theme_override_constants/margin_top = 60
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_bottom = 60
 
 [node name="GameBoard" type="VBoxContainer" parent="GameMargins"]
 layout_mode = 2
@@ -291,9 +291,29 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 60
 
 [node name="GeneratorPanel" parent="IdleMargins" instance=ExtResource("4_3fmbn")]
 layout_mode = 2
+
+[node name="UpgradesMargins" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [connection signal="game_over" from="GameMargins/GameBoard/BoardPanel/BoardContainer/BoardCanvas" to="ScreenManager" method="_on_board_canvas_game_over"]
 [connection signal="visibility_changed" from="IdleMargins/GeneratorPanel" to="IdleMargins/GeneratorPanel" method="_on_visibility_changed"]
