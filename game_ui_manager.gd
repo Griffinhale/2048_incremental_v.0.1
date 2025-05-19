@@ -4,14 +4,18 @@ signal ui_state_changed(state_name: String)
 
 enum Screen {
 	GAME,
-	IDLE
+	IDLE,
+	
 }
 
 var current_screen: Screen = Screen.GAME
 var current_ui_state := "gameplay"
+var showing_upgrades := false
 
 @onready var game_board := $"../GameMargins/GameBoard"
 @onready var idle_panel := $"../IdleMargins/GeneratorPanel"
+@onready var upgrade_margins := $"../UpgradesMargins"
+@onready var upgrade_panel := $"../UpgradesMargins/UpgradesPanel"
 @onready var idle_margins := $"../IdleMargins"
 @onready var to_idle_button := $"../GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons/IdleScreenSwap"
 @onready var play_again_button := $"../GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons/Restart"
@@ -52,10 +56,15 @@ func _on_current_score_changed(value: int):
 func _input(event):
 	if event.is_action_pressed("swap_screen"):
 		swap_screen()
+	if event.is_action_pressed("show_upgrades"):
+		toggle_upgrades()
+		
+func toggle_upgrades():
+	showing_upgrades = !showing_upgrades
+	upgrade_margins.visible = !upgrade_margins.visible
+	upgrade_panel.visible = !upgrade_panel.visible
 
 func show_game_screen():
-	if !game_board:
-		return
 	game_board.visible = true
 	idle_panel.visible = false
 	idle_margins.visible = false
@@ -73,6 +82,8 @@ func swap_screen():
 		show_idle_screen()
 	else:
 		show_game_screen()
+	if showing_upgrades:
+		showing_upgrades = false
 
 func _on_play_again_pressed():
 	reset_to_gameplay()

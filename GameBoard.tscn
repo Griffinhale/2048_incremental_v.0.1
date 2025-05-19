@@ -1,9 +1,10 @@
-[gd_scene load_steps=11 format=3 uid="uid://bw04bwuopdtai"]
+[gd_scene load_steps=12 format=3 uid="uid://bw04bwuopdtai"]
 
 [ext_resource type="Script" uid="uid://d0ww83e0cjjbr" path="res://game_ui_manager.gd" id="1_3fmbn"]
 [ext_resource type="Script" uid="uid://ddhocvt6e08ll" path="res://board_canvas.gd" id="2_ocn0r"]
 [ext_resource type="Script" uid="uid://bi8itfklc4565" path="res://queue_display.gd" id="3_3fmbn"]
 [ext_resource type="PackedScene" uid="uid://cy5jlc4dsmjkb" path="res://GeneratorPanel.tscn" id="4_3fmbn"]
+[ext_resource type="PackedScene" uid="uid://c2u2vsqack1g3" path="res://UpgradesPanel.tscn" id="5_p1wqh"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ocn0r"]
 bg_color = Color(0.737255, 0.556863, 0.443137, 0.752941)
@@ -300,20 +301,21 @@ theme_override_constants/margin_bottom = 60
 layout_mode = 2
 
 [node name="UpgradesMargins" type="MarginContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 92
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 92
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="UpgradesPanel" parent="UpgradesMargins" instance=ExtResource("5_p1wqh")]
+visible = false
+layout_mode = 2
 
 [connection signal="game_over" from="GameMargins/GameBoard/BoardPanel/BoardContainer/BoardCanvas" to="ScreenManager" method="_on_board_canvas_game_over"]
 [connection signal="visibility_changed" from="IdleMargins/GeneratorPanel" to="IdleMargins/GeneratorPanel" method="_on_visibility_changed"]

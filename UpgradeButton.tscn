@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://bc3qdqk8c3wus"]
+
+[node name="UpgradeButton" type="Button"]
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="UpgradeLabel" type="Label" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
