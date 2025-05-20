@@ -1,6 +1,6 @@
 extends Control
 
-@onready var upgrade_button_scene := preload("res://UpgradeButton.tscn")
+@onready var upgrade_button_scene := preload("res://scenes/components/UpgradeButton.tscn")
 @onready var upgrade_containers := {
 	"generators": $VBoxContainer/TabContainer/Generator_Upgrades/VBoxContainer,
 	"conversion": $VBoxContainer/TabContainer/Conversion_Upgrades/VBoxContainer,

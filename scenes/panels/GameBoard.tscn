@@ -1,10 +1,10 @@
 [gd_scene load_steps=12 format=3 uid="uid://bw04bwuopdtai"]
 
-[ext_resource type="Script" uid="uid://d0ww83e0cjjbr" path="res://game_ui_manager.gd" id="1_3fmbn"]
-[ext_resource type="Script" uid="uid://ddhocvt6e08ll" path="res://board_canvas.gd" id="2_ocn0r"]
-[ext_resource type="Script" uid="uid://bi8itfklc4565" path="res://queue_display.gd" id="3_3fmbn"]
-[ext_resource type="PackedScene" uid="uid://cy5jlc4dsmjkb" path="res://GeneratorPanel.tscn" id="4_3fmbn"]
-[ext_resource type="PackedScene" uid="uid://c2u2vsqack1g3" path="res://UpgradesPanel.tscn" id="5_p1wqh"]
+[ext_resource type="Script" uid="uid://d0ww83e0cjjbr" path="res://scripts/managers/game_ui_manager.gd" id="1_3fmbn"]
+[ext_resource type="Script" uid="uid://ddhocvt6e08ll" path="res://scripts/gameboard/board_canvas.gd" id="2_ocn0r"]
+[ext_resource type="Script" uid="uid://bi8itfklc4565" path="res://scripts/gameboard/queue_display.gd" id="3_3fmbn"]
+[ext_resource type="PackedScene" uid="uid://cy5jlc4dsmjkb" path="res://scenes/panels/GeneratorPanel.tscn" id="4_3fmbn"]
+[ext_resource type="PackedScene" uid="uid://c2u2vsqack1g3" path="res://scenes/panels/UpgradesPanel.tscn" id="5_p1wqh"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ocn0r"]
 bg_color = Color(0.737255, 0.556863, 0.443137, 0.752941)

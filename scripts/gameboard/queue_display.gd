@@ -29,7 +29,7 @@ func update_queue_display():
 	var next_tile = queue[0]  # what's going to spawn next
 	var future_tiles = queue.slice(1)  # exclude the first (next spawn)
 
-	var TilePreview = preload("res://TilePreview.tscn")
+	var TilePreview = preload("res://scenes/components/TilePreview.tscn")
 
 	# Show queue from newest [last] to oldest [first]
 	for i in range(future_tiles.size() - 1, -1, -1):

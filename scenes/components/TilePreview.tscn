@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b5txeubgt3m1x"]
 
-[ext_resource type="Script" uid="uid://cdnywyrhijw7q" path="res://tile_preview.gd" id="1_ksqut"]
+[ext_resource type="Script" uid="uid://cdnywyrhijw7q" path="res://scripts/gameboard/tile_preview.gd" id="1_ksqut"]
 
 [node name="TilePreview" type="Control"]
 layout_mode = 3

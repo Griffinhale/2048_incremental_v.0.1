@@ -16,11 +16,11 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GeneratorManager="*res://generator_manager.gd"
-CurrencyManager="*res://currency_manager.gd"
-StatsTracker="*res://StatsTracker.gd"
-PrestigeManager="*res://prestige_manager.gd"
-UpgradeManager="*res://upgrade_manager.gd"
+GeneratorManager="*res://scripts/managers/generator_manager.gd"
+CurrencyManager="*res://scripts/managers/currency_manager.gd"
+StatsTracker="*res://scripts/managers/StatsTracker.gd"
+PrestigeManager="*res://scripts/managers/prestige_manager.gd"
+UpgradeManager="*res://scripts/managers/upgrade_manager.gd"
 
 [display]
 

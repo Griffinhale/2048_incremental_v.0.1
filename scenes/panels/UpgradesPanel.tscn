@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://c2u2vsqack1g3"]
 
-[ext_resource type="Script" uid="uid://dvuws0vs17ke1" path="res://upgrades_panel.gd" id="1_b04e6"]
+[ext_resource type="Script" uid="uid://dvuws0vs17ke1" path="res://scripts/upgrades/upgrades_panel.gd" id="1_b04e6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bo758"]
 bg_color = Color(0.651175, 0.589335, 0.520266, 1)

@@ -5,7 +5,7 @@ extends Control
 # === Constants and resources ===
 const ROWS := 4
 const COLS := 4
-const TILE_SCENE := preload("res://Tile.tscn")
+const TILE_SCENE := preload("res://scenes/components/Tile.tscn")
 
 # === Board state ===
 var cell_size: Vector2
@@ -30,7 +30,7 @@ signal game_over(stats: GameStats)
 signal score_changed(new_score: int)
 
 # === Tile spawner instance ===
-@onready var spawner = preload("res://Spawner.gd").new()
+@onready var spawner = preload("res://scripts/managers/Spawner.gd").new()
 
 # === Movement directions and mapped input strings ===
 enum Direction {

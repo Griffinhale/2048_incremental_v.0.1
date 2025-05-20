@@ -1,7 +1,7 @@
 extends Control
 
 @onready var generator_list := $VBoxContainer/GeneratorContainer/ScrollContainer/GeneratorList
-const GENERATOR_ENTRY_SCENE := preload("res://GeneratorEntry.tscn")
+const GENERATOR_ENTRY_SCENE := preload("res://scenes/components/GeneratorEntry.tscn")
 
 
 @onready var currency_label := $VBoxContainer/StatsContainer/CurrencyDisplay

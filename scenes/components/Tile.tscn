@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dg5qg305eqxkt"]
 
-[ext_resource type="Script" uid="uid://chuj6yy6em2y3" path="res://Tile.gd" id="1_7tvkw"]
+[ext_resource type="Script" uid="uid://chuj6yy6em2y3" path="res://scripts/gameboard/Tile.gd" id="1_7tvkw"]
 
 [node name="Tile" type="Control"]
 layout_mode = 3
