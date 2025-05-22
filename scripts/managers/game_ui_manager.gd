@@ -5,7 +5,8 @@ signal ui_state_changed(state_name: String)
 enum Screen {
 	GAME,
 	IDLE,
-	
+	UPGRADES,
+	STATS
 }
 
 var current_screen: Screen = Screen.GAME
@@ -14,8 +15,9 @@ var showing_upgrades := false
 
 @onready var game_board := $"../GameMargins/GameBoard"
 @onready var idle_panel := $"../IdleMargins/GeneratorPanel"
-@onready var upgrade_margins := $"../UpgradesMargins"
-@onready var upgrade_panel := $"../UpgradesMargins/UpgradesPanel"
+@onready var upgrades_margins := $"../UpgradesMargins"
+@onready var upgrades_panel := $"../UpgradesMargins/UpgradesPanel"
+@onready var game_margins := $"../GameMargins"
 @onready var idle_margins := $"../IdleMargins"
 @onready var to_idle_button := $"../GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons/IdleScreenSwap"
 @onready var play_again_button := $"../GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons/Restart"
@@ -25,6 +27,8 @@ var showing_upgrades := false
 @onready var board_panel := $"../GameMargins/GameBoard/BoardPanel"
 @onready var queue_panel := $"../GameMargins/GameBoard/QueuePanel"
 @onready var board_canvas := $"../GameMargins/GameBoard/BoardPanel/BoardContainer/BoardCanvas"
+@onready var stats_margins := $"../StatsMargins"
+@onready var stats_panel := $"../StatsMargins/StatsPanel"
 @onready var current_score: int = 0
 
 func _ready():
@@ -54,36 +58,88 @@ func _on_current_score_changed(value: int):
 	score_label.text = str(current_score)
 	
 func _input(event):
-	if event.is_action_pressed("swap_screen"):
+	if event.is_action_pressed("show_board"):
+		current_screen = Screen.GAME
 		swap_screen()
 	if event.is_action_pressed("show_upgrades"):
-		toggle_upgrades()
+		current_screen = Screen.UPGRADES
+		swap_screen()
+	if event.is_action_pressed("show_gens"):
+		current_screen = Screen.IDLE
+		swap_screen()
+	if event.is_action_pressed("show_stats"):
+		current_screen = Screen.STATS
+		swap_screen()
 		
-func toggle_upgrades():
-	showing_upgrades = !showing_upgrades
-	upgrade_margins.visible = !upgrade_margins.visible
-	upgrade_panel.visible = !upgrade_panel.visible
 
-func show_game_screen():
-	game_board.visible = true
-	idle_panel.visible = false
-	idle_margins.visible = false
-	current_screen = Screen.GAME
-
-func show_idle_screen():
+func shrink_board_panel():
 	game_board.visible = false
+	game_margins.visible = false
+	
+func slide_board_panel():
+	game_board.visible = true
+	game_margins.visible = true
+
+func shrink_idle_panel():
+	idle_margins.visible = false
+	idle_panel.visible = false
+
+func slide_idle_panel():
 	idle_margins.visible = true
 	idle_panel.visible = true
+	
+func shrink_stats_panel():
+	stats_panel.visible = false
+	stats_margins.visible = false
+	
+func slide_stats_panel():
+	stats_panel.visible = true
+	stats_margins.visible = true
+
+func shrink_upgrades_panel():
+	upgrades_margins.visible = false
+	upgrades_panel.visible = false
+
+func slide_upgrades_panel():
+	upgrades_margins.visible = true
+	upgrades_panel.visible = true
+	
+func show_idle_screen():
+	shrink_board_panel()
+	shrink_stats_panel()
+	shrink_upgrades_panel()
+	slide_idle_panel()
 	idle_panel.update_level_up_buttons()
-	current_screen = Screen.IDLE
+
+func show_game_screen():
+	shrink_stats_panel()
+	shrink_idle_panel()
+	shrink_upgrades_panel()
+	slide_board_panel()
+
+func show_stats_screen():
+	shrink_board_panel()
+	shrink_idle_panel()
+	shrink_upgrades_panel()
+	slide_stats_panel()
+
+func show_upgrades_screen():
+	shrink_board_panel()
+	shrink_idle_panel()
+	shrink_stats_panel()
+	slide_upgrades_panel()
 
 func swap_screen():
+	print(current_screen)
 	if current_screen == Screen.GAME:
-		show_idle_screen()
-	else:
 		show_game_screen()
-	if showing_upgrades:
-		showing_upgrades = false
+	if current_screen == Screen.IDLE:
+		show_idle_screen()
+	if current_screen == Screen.STATS:
+		show_stats_screen()
+	if current_screen == Screen.UPGRADES:
+		show_upgrades_screen()
+	
 
 func _on_play_again_pressed():
 	reset_to_gameplay()
