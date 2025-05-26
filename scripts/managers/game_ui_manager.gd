@@ -19,6 +19,8 @@ var showing_upgrades := false
 @onready var upgrades_panel := $"../UpgradesMargins/UpgradesPanel"
 @onready var game_margins := $"../GameMargins"
 @onready var idle_margins := $"../IdleMargins"
+@onready var debug_margins := $"../DebugMargins"  # Add this line
+@onready var debug_panel := $"../DebugMargins/DebugPanel"  # Add this line
 @onready var to_idle_button := $"../GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons/IdleScreenSwap"
 @onready var play_again_button := $"../GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons/Restart"
 @onready var convert_and_stash := $"../GameMargins/GameBoard/TopBarPanel/GameOverBox/Buttons/ConvertAndStash"
@@ -36,6 +38,13 @@ func _ready():
 	print("Restart Button Found:", play_again_button)
 	print("Restart Button Visible:", play_again_button.visible)
 	print("Restart Mouse Filter:", play_again_button.mouse_filter)
+	
+	# Debug panel verification
+	print("DebugPanel found: ", debug_panel != null)
+	if debug_panel:
+		print("DebugPanel visible: ", debug_panel.visible)
+		print("DebugPanel size: ", debug_panel.size)
+		debug_panel.visible = false  # Start hidden
 
 	to_idle_button.pressed.connect(show_idle_screen)
 	if not board_canvas.is_connected("game_over", _on_board_canvas_game_over):
@@ -70,7 +79,19 @@ func _input(event):
 	if event.is_action_pressed("show_stats"):
 		current_screen = Screen.STATS
 		swap_screen()
+	# Add debug toggle - you'll need to create this input action
+	if event.is_action_pressed("toggle_debug"):
+		toggle_debug_panel()
+
+func toggle_debug_panel():
+	if debug_panel:
+		debug_panel.visible = !debug_panel.visible
+		debug_margins.visible = debug_panel.visible
+		print("Debug panel toggled to: ", debug_panel.visible)
 		
+		# Bring to front when visible
+		if debug_panel.visible:
+			debug_margins.move_to_front()
 
 func shrink_board_panel():
 	game_board.visible = false

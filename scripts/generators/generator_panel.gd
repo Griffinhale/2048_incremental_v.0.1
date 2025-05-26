@@ -15,7 +15,7 @@ func _ready():
 	populate_generators()
 	GeneratorManager.generator_updated.connect(_on_generator_updated)
 	CurrencyManager.currency_changed.connect(_on_currency_changed)
-	_on_currency_changed(CurrencyManager.get_currency())
+	_on_currency_changed(CurrencyManager.get_currency("conversion"))
 	
 func _on_currency_changed(new_value: float):
 	currency_label.text = "Currency: %.2f" % new_value
@@ -50,7 +50,7 @@ func _on_level_up_pressed(gen_id: String, entry: Node):
 	update_level_up_buttons()
 
 func update_level_up_buttons():
-	var currency = CurrencyManager.get_currency()
+	var currency = CurrencyManager.get_currency("conversion")
 	if !generator_list:
 		return
 		

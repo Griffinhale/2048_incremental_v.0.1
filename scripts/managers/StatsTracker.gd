@@ -47,7 +47,7 @@ func convert_all_stashed_games() -> float:
 	last_conversion_amount = total_earned
 	
 	# Add to CurrencyManager
-	CurrencyManager.add_currency(total_earned)
+	CurrencyManager.add_currency("conversion", total_earned)
 
 	# Reset stash
 	all_game_stats.clear()

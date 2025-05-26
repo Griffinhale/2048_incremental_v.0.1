@@ -2,70 +2,86 @@ extends Node
 
 
 signal generator_updated(id: String, new_yield: float)
+signal generator_unlocked(id: String)
 
 var generators := []
 var timers := {}
+var yield_algorithms := {}
+var generator_upgrades := {}
 
-@onready var upgrade_manager := get_node_or_null("/root/UpgradeManager")
+var debug_data := {
+	"total_yields": {},
+	"tick_counts": {},
+	"algorithm_seeds": {}
+}
 
 func _ready():
+	initialize_yield_algorithms()
 	load_generators()
+	#load_generator_upgrades()
 	start_all_generators()
+
+func initialize_yield_algorithms():
+	pass
 
 func load_generators():
 	# In a real setup this would come from a JSON file.
 	# Add fields for if generator is active, level up cost, and cost growth
 	# For now, define directly:
 	generators = [
-	{
-		"id": "gen_0", "label": "Basic Combiner",
-		"tile_targets": [0, 1], "level": 0, "base_yield": 0.2,
-		"growth_curve": "linear", "growth_factor": 1.0,
-		"interval_seconds": 1.0, "multiplier": 1.0,
-		"level_cost": 1.0, "cost_growth": 1.12,
-		"active": false
-	},
-	{
-		"id": "gen_1", "label": "Twin Amplifier",
-		"tile_targets": [2, 3], "level": 0, "base_yield": 1.0,
-		"growth_curve": "exponential", "growth_factor": 1.1,
-		"interval_seconds": 2.0, "multiplier": 1.0,
-		"level_cost": 2.0, "cost_growth": 1.15,
-		"active": false
-	},
-	{
-		"id": "gen_2", "label": "Prime Reactor",
-		"tile_targets": [5, 7], "level": 0, "base_yield": 0.8,
-		"growth_curve": "exponential", "growth_factor": 1.15,
-		"interval_seconds": 3.0, "multiplier": 1.0,
-		"level_cost": 3.5, "cost_growth": 1.18,
-		"active": false
-	},
-	{
-		"id": "gen_3", "label": "Echo Producer",
-		"tile_targets": [9, 6], "level": 0, "base_yield": 1.5,
-		"growth_curve": "linear", "growth_factor": 1.5,
-		"interval_seconds": 4.0, "multiplier": 1.0,
-		"level_cost": 5.0, "cost_growth": 1.2,
-		"active": false
-	},
-	{
-		"id": "gen_4", "label": "Recursive Synth",
-		"tile_targets": [10, 4], "level": 0, "base_yield": 2.0,
-		"growth_curve": "exponential", "growth_factor": 1.25,
-		"interval_seconds": 6.0, "multiplier": 1.0,
-		"level_cost": 7.5, "cost_growth": 1.22,
-		"active": false
-	},
-	{
-		"id": "gen_5", "label": "Singularity Driver",
-		"tile_targets": [8, 11], "level": 0, "base_yield": 3.5,
-		"growth_curve": "linear", "growth_factor": 2.0,
-		"interval_seconds": 10.0, "multiplier": 1.0,
-		"level_cost": 10.0, "cost_growth": 1.25,
-		"active": false
-	}
-]
+		{
+			"id": "gen_0", "label": "Basic Combiner",
+			"tile_targets": [0, 1], "level": 0, "base_yield": 0.2,
+			"growth_curve": "linear", "growth_factor": 1.0,
+			"interval_seconds": 1.0, "multiplier": 1.0,
+			"level_cost": 1.0, "cost_growth": 1.12,
+			"active": false
+		},
+		{
+			"id": "gen_1", "label": "Twin Amplifier",
+			"tile_targets": [2, 3], "level": 0, "base_yield": 1.0,
+			"growth_curve": "exponential", "growth_factor": 1.1,
+			"interval_seconds": 2.0, "multiplier": 1.0,
+			"level_cost": 2.0, "cost_growth": 1.15,
+			"active": false
+		},
+		{
+			"id": "gen_2", "label": "Prime Reactor",
+			"tile_targets": [5, 7], "level": 0, "base_yield": 0.8,
+			"growth_curve": "exponential", "growth_factor": 1.15,
+			"interval_seconds": 3.0, "multiplier": 1.0,
+			"level_cost": 3.5, "cost_growth": 1.18,
+			"active": false
+		},
+		{
+			"id": "gen_3", "label": "Echo Producer",
+			"tile_targets": [9, 6], "level": 0, "base_yield": 1.5,
+			"growth_curve": "linear", "growth_factor": 1.5,
+			"interval_seconds": 4.0, "multiplier": 1.0,
+			"level_cost": 5.0, "cost_growth": 1.2,
+			"active": false
+		},
+		{
+			"id": "gen_4", "label": "Recursive Synth",
+			"tile_targets": [10, 4], "level": 0, "base_yield": 2.0,
+			"growth_curve": "exponential", "growth_factor": 1.25,
+			"interval_seconds": 6.0, "multiplier": 1.0,
+			"level_cost": 7.5, "cost_growth": 1.22,
+			"active": false
+		},
+		{
+			"id": "gen_5", "label": "Singularity Driver",
+			"tile_targets": [8, 11], "level": 0, "base_yield": 3.5,
+			"growth_curve": "linear", "growth_factor": 2.0,
+			"interval_seconds": 10.0, "multiplier": 1.0,
+			"level_cost": 10.0, "cost_growth": 1.25,
+			"active": false
+		}
+	]
+# Initialize debug tracking
+	for gen in generators:
+		debug_data.total_yields[gen.id] = 0.0
+		debug_data.tick_counts[gen.id] = 0
 
 
 func start_all_generators():
@@ -99,7 +115,7 @@ func _on_generator_tick(generator_id: String):
 		return
 		
 	var yield_curr = calculate_yield(gen)
-	CurrencyManager.add_currency(yield_curr)
+	CurrencyManager.add_currency("conversion", yield_curr)
 	emit_signal("generator_updated", generator_id, yield_curr)
 
 func calculate_yield(gen: Dictionary) -> float:
@@ -132,7 +148,7 @@ func level_up_generator(id: String):
 	var gen = get_generator_by_id(id)
 	if gen:
 		var cost = gen.get("level_cost", 1.0)
-		if CurrencyManager.spend_currency(cost):
+		if CurrencyManager.spend_currency("conversion", cost):
 			gen["level"] += 1
 			gen["level_cost"] *= gen.get("cost_growth", 1.15)
 			if gen["level"] == 1:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bw04bwuopdtai"]
+[gd_scene load_steps=14 format=3 uid="uid://bw04bwuopdtai"]
 
 [ext_resource type="Script" uid="uid://d0ww83e0cjjbr" path="res://scripts/managers/game_ui_manager.gd" id="1_3fmbn"]
 [ext_resource type="Script" uid="uid://ddhocvt6e08ll" path="res://scripts/gameboard/board_canvas.gd" id="2_ocn0r"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://cy5jlc4dsmjkb" path="res://scenes/panels/GeneratorPanel.tscn" id="4_3fmbn"]
 [ext_resource type="PackedScene" uid="uid://c2u2vsqack1g3" path="res://scenes/panels/UpgradesPanel.tscn" id="5_p1wqh"]
 [ext_resource type="PackedScene" uid="uid://3rttg66hq1ux" path="res://scenes/panels/StatsPanel.tscn" id="6_5o0bf"]
+[ext_resource type="PackedScene" uid="uid://bnb1pesewg3kg" path="res://scenes/panels/DebugPanel.tscn" id="7_pr20y"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ocn0r"]
 bg_color = Color(0.737255, 0.556863, 0.443137, 0.752941)
@@ -107,6 +108,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ocn0r")
+
+[node name="DebugMargins" type="MarginContainer" parent="."]
+modulate = Color(0, 0, 0, 1)
+top_level = true
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 32
+
+[node name="DebugPanel" parent="DebugMargins" instance=ExtResource("7_pr20y")]
+layout_mode = 2
 
 [node name="GameMargins" type="MarginContainer" parent="."]
 layout_mode = 1
