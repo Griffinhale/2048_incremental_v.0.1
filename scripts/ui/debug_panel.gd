@@ -33,7 +33,9 @@ func _ready():
 	setup_ui()
 	setup_refresh_timer()
 	create_debug_sections()
-	
+	#visible = true
+	#modulate = Color.RED  # Make it red so you can definitely see it
+	#move_to_front()
 	# Debug the panel's visibility and position
 	await get_tree().process_frame
 	print("DebugPanel - Visible: %s, Position: %s, Size: %s" % [visible, global_position, size])
@@ -47,8 +49,10 @@ func setup_ui():
 		add_child(content_container)
 	
 	# Add some visual styling to make containers visible
-	add_theme_stylebox_override("panel", create_debug_style())
+	#add_theme_stylebox_override("panel", create_debug_style())
 	content_container.add_theme_constant_override("separation", 5)
+	content_container.size_flags_horizontal = Control.SIZE_FILL
+	content_container.size_flags_vertical = Control.SIZE_FILL
 	
 	# Set up scrolling if the panel gets too long
 	if not get_parent() is ScrollContainer:
@@ -177,6 +181,7 @@ func initialize_currency_labels():
 		# Add some styling to make labels more visible
 		label.add_theme_color_override("font_color", Color.WHITE)
 		label.add_theme_font_size_override("font_size", 12)
+		label.add_theme_font_override("font", get_theme_default_font())
 		
 		# Ensure the label has a minimum size
 		label.custom_minimum_size = Vector2(200, 20)
@@ -204,19 +209,129 @@ func initialize_generator_labels():
 	if not section:
 		return
 	
-	# Create a few generator labels (will expand as needed)
-	for i in range(5):  # Adjust based on your max generators
-		var label = Label.new()
-		label.text = "Generator %d: Not initialized" % i
-		label.visible = false  # Hide until we have data
-		generator_labels["gen_%d" % i] = label
-		section.add_child(label)
+	# Clear existing labels if reinitializing
+	for child in section.get_children():
+		if child.name.begins_with("gen_debug_"):
+			child.queue_free()
 	
-	# Overall total label
-	var total_label = Label.new()
-	total_label.text = "Overall Generator Output: 0"
-	generator_labels["total"] = total_label
-	section.add_child(total_label)
+	# Wait for any queued deletions
+	if get_tree():
+		await get_tree().process_frame 
+	
+	# Create generator-specific labels
+	if GeneratorManager:
+		var generators = GeneratorManager.generators
+		for gen in generators:
+			var gen_id = gen.get("id", "unknown")
+			
+			# Main generator info label
+			var main_label = Label.new()
+			main_label.name = "gen_debug_%s_main" % gen_id
+			main_label.text = "%s (Lv%d): Inactive" % [gen.get("label", gen_id), gen.get("level", 0)]
+			main_label.visible = false  # Hide until active
+			generator_labels[gen_id + "_main"] = main_label
+			section.add_child(main_label)
+			
+			# Yield details label
+			var yield_label = Label.new()
+			yield_label.name = "gen_debug_%s_yield" % gen_id
+			yield_label.text = "  └ Last: 0.00 | Avg: 0.00 | Total: 0.00"
+			yield_label.visible = false
+			generator_labels[gen_id + "_yield"] = yield_label
+			section.add_child(yield_label)
+			
+			# Timing info label
+			var timing_label = Label.new()
+			timing_label.name = "gen_debug_%s_timing" % gen_id
+			timing_label.text = "  └ Ticks: 0 | Interval: %.1fs" % gen.get("interval_seconds", 1.0)
+			timing_label.visible = false
+			generator_labels[gen_id + "_timing"] = timing_label
+			section.add_child(timing_label)
+	else:
+		# Fallback if GeneratorManager not available
+		for i in range(6):  # Match the 6 generators in your manager
+			var label = Label.new()
+			label.name = "gen_debug_fallback_%d" % i
+			label.text = "Generator %d: GeneratorManager not found" % i
+			label.visible = true
+			generator_labels["gen_%d" % i] = label
+			section.add_child(label)
+	
+	# Summary labels
+	var active_count_label = Label.new()
+	active_count_label.name = "gen_debug_active_count"
+	active_count_label.text = "Active Generators: 0"
+	generator_labels["active_count"] = active_count_label
+	section.add_child(active_count_label)
+	
+	var total_yield_label = Label.new()
+	total_yield_label.name = "gen_debug_total_yield"
+	total_yield_label.text = "Total Lifetime Yield: 0.00"
+	generator_labels["total_yield"] = total_yield_label
+	section.add_child(total_yield_label)
+	
+	var yield_per_sec_label = Label.new()
+	yield_per_sec_label.name = "gen_debug_yield_per_sec"
+	yield_per_sec_label.text = "Estimated Yield/sec: 0.00"
+	generator_labels["yield_per_sec"] = yield_per_sec_label
+	section.add_child(yield_per_sec_label)
+
+func update_generator_debug():
+	if not debug_flags.get("generators", false) or not GeneratorManager:
+		return
+	
+	var debug_info = GeneratorManager.get_debug_info()
+	
+	# Update summary labels
+	if generator_labels.has("active_count"):
+		generator_labels["active_count"].text = "Active Generators: %d" % debug_info.get("active_generators", 0)
+	
+	if generator_labels.has("total_yield"):
+		generator_labels["total_yield"].text = "Total Lifetime Yield: %.2f" % debug_info.get("total_lifetime_yield", 0.0)
+	
+	if generator_labels.has("yield_per_sec"):
+		var yield_per_sec = GeneratorManager.get_total_yield_per_second()
+		generator_labels["yield_per_sec"].text = "Estimated Yield/sec: %.2f" % yield_per_sec
+	
+	# Update individual generator info
+	var generator_debug_info = debug_info.get("generators", [])
+	
+	# First, hide all generator labels
+	for key in generator_labels.keys():
+		if key.ends_with("_main") or key.ends_with("_yield") or key.ends_with("_timing"):
+			generator_labels[key].visible = false
+	
+	# Then show and update active generators
+	for gen_info in generator_debug_info:
+		var gen_id = gen_info.get("id", "")
+		var main_key = gen_id + "_main"
+		var yield_key = gen_id + "_yield"
+		var timing_key = gen_id + "_timing"
+		
+		# Update main info
+		if generator_labels.has(main_key):
+			var label = generator_labels[main_key]
+			label.text = "%s (Lv%d): Active" % [gen_info.get("label", gen_id), gen_info.get("level", 0)]
+			label.visible = true
+		
+		# Update yield info
+		if generator_labels.has(yield_key):
+			var label = generator_labels[yield_key]
+			label.text = "  └ Last: %.2f | Avg: %.2f | Total: %.2f" % [
+				gen_info.get("last_yield", 0.0),
+				gen_info.get("avg_yield", 0.0),
+				gen_info.get("total_yield", 0.0)
+			]
+			label.visible = true
+		
+		# Update timing info
+		if generator_labels.has(timing_key):
+			var label = generator_labels[timing_key]
+			label.text = "  └ Ticks: %d | Interval: %.1fs" % [
+				gen_info.get("tick_count", 0),
+				GeneratorManager.get_generator_by_id(gen_id).get("interval_seconds", 1.0)
+			]
+			label.visible = true
 
 func initialize_conversion_labels():
 	if not debug_flags.get("conversion_rates", false):
@@ -345,46 +460,46 @@ func update_currency_debug():
 		else:
 			label.text = "%s: No data available" % currency_type.capitalize()
 
-func update_generator_debug():
-	if not debug_flags.get("generators", false):
-		return
-	
-	if not generator_manager.has_method("get_debug_summary"):
-		# Show error in first generator label
-		if generator_labels.has("gen_0"):
-			generator_labels["gen_0"].text = "Generator debug not available - update GeneratorManager"
-			generator_labels["gen_0"].visible = true
-		return
-	
-	var generator_debug = generator_manager.get_debug_summary()
-	
-	# Hide all generator labels first
-	for key in generator_labels:
-		if key.begins_with("gen_"):
-			generator_labels[key].visible = false
-	
-	# Update visible generators
-	var gen_index = 0
-	for gen_id in generator_debug:
-		if gen_id == "overall_total":
-			continue
-		
-		var label_key = "gen_%d" % gen_index
-		if generator_labels.has(label_key):
-			var info = generator_debug[gen_id]
-			var label = generator_labels[label_key]
-			label.text = "%s: Total: %s, Ticks: %d, Avg: %.3f" % [
-				gen_id,
-				CurrencyManager.format_currency(info.total_yield),
-				info.tick_count,
-				info.average_yield
-			]
-			label.visible = true
-		gen_index += 1
-	
-	# Update overall total
-	if generator_labels.has("total"):
-		generator_labels["total"].text = "Overall Generator Output: %s" % CurrencyManager.format_currency(generator_debug.get("overall_total", 0.0))
+#func update_generator_debug():
+	#if not debug_flags.get("generators", false):
+		#return
+	#
+	#if not generator_manager.has_method("get_debug_summary"):
+		## Show error in first generator label
+		#if generator_labels.has("gen_0"):
+			#generator_labels["gen_0"].text = "Generator debug not available - update GeneratorManager"
+			#generator_labels["gen_0"].visible = true
+		#return
+	#
+	#var generator_debug = generator_manager.get_debug_summary()
+	#
+	## Hide all generator labels first
+	#for key in generator_labels:
+		#if key.begins_with("gen_"):
+			#generator_labels[key].visible = false
+	#
+	## Update visible generators
+	#var gen_index = 0
+	#for gen_id in generator_debug:
+		#if gen_id == "overall_total":
+			#continue
+		#
+		#var label_key = "gen_%d" % gen_index
+		#if generator_labels.has(label_key):
+			#var info = generator_debug[gen_id]
+			#var label = generator_labels[label_key]
+			#label.text = "%s: Total: %s, Ticks: %d, Avg: %.3f" % [
+				#gen_id,
+				#CurrencyManager.format_currency(info.total_yield),
+				#info.tick_count,
+				#info.average_yield
+			#]
+			#label.visible = true
+		#gen_index += 1
+	#
+	## Update overall total
+	#if generator_labels.has("total"):
+		#generator_labels["total"].text = "Overall Generator Output: %s" % CurrencyManager.format_currency(generator_debug.get("overall_total", 0.0))
 
 func update_conversion_debug():
 	if not debug_flags.get("conversion_rates", false):

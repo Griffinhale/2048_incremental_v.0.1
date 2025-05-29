@@ -322,13 +322,31 @@ func _draw():
 			draw_rect(Rect2(top_left, cell_size), Color.BLACK, false)
 
 func _unhandled_input(event: InputEvent):
-	if event.is_pressed():
-		var dir = input_map.get(event.as_text_key_label().to_lower(), null)
-		if dir != null:
-			if shift_tiles(dir):
-				move_count += 1
-				spawn_post_move_tile()
-				verify_grid_consistency()
-				if check_game_over():
-					trigger_game_over()
+	# Only process key press events, not mouse clicks or other inputs
+	if not event is InputEventKey:
+		return
+	
+	# Only process when the key is first pressed (not held or released)
+	if not event.pressed:
+		return
+	
+	# Check for specific UI directional inputs
+	var direction = null
+	if Input.is_action_just_pressed("ui_left"):
+		direction = Direction.LEFT
+	elif Input.is_action_just_pressed("ui_right"):
+		direction = Direction.RIGHT
+	elif Input.is_action_just_pressed("ui_up"):
+		direction = Direction.UP
+	elif Input.is_action_just_pressed("ui_down"):
+		direction = Direction.DOWN
+	
+	# If we got a valid direction, process the move
+	if direction != null:
+		if shift_tiles(direction):
+			move_count += 1
+			spawn_post_move_tile()
+			verify_grid_consistency()
+			if check_game_over():
+				trigger_game_over()
 #endregion

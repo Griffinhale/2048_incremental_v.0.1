@@ -110,9 +110,7 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ocn0r")
 
 [node name="DebugMargins" type="MarginContainer" parent="."]
-modulate = Color(0, 0, 0, 1)
 top_level = true
-z_index = 2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
