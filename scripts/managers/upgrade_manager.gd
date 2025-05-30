@@ -56,3 +56,7 @@ var upgrades: Dictionary = {
 		{ "id": "generator_unlock_new_type", "cost": 300, "tier": 3, "effect": { "unlock_generator_type": "gen_6" }, "keystone": true }
 	]
 }
+func get_generator_upgrades() -> Dictionary:
+	# Stub - return empty for now
+	# In v0.3+ this will return actual upgrade bonuses
+	return {}

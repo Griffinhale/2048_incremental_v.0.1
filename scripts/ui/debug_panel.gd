@@ -220,14 +220,14 @@ func initialize_generator_labels():
 	
 	# Create generator-specific labels
 	if GeneratorManager:
-		var generators = GeneratorManager.generators
-		for gen in generators:
-			var gen_id = gen.get("id", "unknown")
+		var generators = GeneratorManager.generator_collection
+		for gen in generators.generators:
+			var gen_id = gen.get("id")
 			
 			# Main generator info label
 			var main_label = Label.new()
 			main_label.name = "gen_debug_%s_main" % gen_id
-			main_label.text = "%s (Lv%d): Inactive" % [gen.get("label", gen_id), gen.get("level", 0)]
+			main_label.text = "%s (Lv%d): Inactive" % [gen.get("label"), gen.get("level")]
 			main_label.visible = false  # Hide until active
 			generator_labels[gen_id + "_main"] = main_label
 			section.add_child(main_label)
@@ -243,7 +243,7 @@ func initialize_generator_labels():
 			# Timing info label
 			var timing_label = Label.new()
 			timing_label.name = "gen_debug_%s_timing" % gen_id
-			timing_label.text = "  └ Ticks: 0 | Interval: %.1fs" % gen.get("interval_seconds", 1.0)
+			timing_label.text = "  └ Ticks: 0 | Interval: %.1fs" % gen.get("interval_seconds")
 			timing_label.visible = false
 			generator_labels[gen_id + "_timing"] = timing_label
 			section.add_child(timing_label)
@@ -318,9 +318,9 @@ func update_generator_debug():
 		if generator_labels.has(yield_key):
 			var label = generator_labels[yield_key]
 			label.text = "  └ Last: %.2f | Avg: %.2f | Total: %.2f" % [
-				gen_info.get("last_yield", 0.0),
-				gen_info.get("avg_yield", 0.0),
-				gen_info.get("total_yield", 0.0)
+				gen_info.get("last_yield"),
+				gen_info.get("avg_yield"),
+				gen_info.get("total_yield")
 			]
 			label.visible = true
 		
@@ -328,8 +328,8 @@ func update_generator_debug():
 		if generator_labels.has(timing_key):
 			var label = generator_labels[timing_key]
 			label.text = "  └ Ticks: %d | Interval: %.1fs" % [
-				gen_info.get("tick_count", 0),
-				GeneratorManager.get_generator_by_id(gen_id).get("interval_seconds", 1.0)
+				gen_info.get("tick_count"),
+				GeneratorManager.generator_collection.get_generator_by_id(gen_id).get("interval_seconds")
 			]
 			label.visible = true
 

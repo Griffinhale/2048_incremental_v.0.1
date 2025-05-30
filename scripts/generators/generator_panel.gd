@@ -71,8 +71,8 @@ func populate_generators():
 	# Wait for children to be freed
 	await get_tree().process_frame
 	
-	var gens := GeneratorManager.generators
-	for gen in gens:
+	var gens = GeneratorManager.generator_collection
+	for gen in gens.generators:
 		# Only show unlocked generators
 		if not GeneratorManager.is_generator_unlocked(gen):
 			continue
@@ -84,7 +84,7 @@ func populate_generators():
 		entry.get_node("Label_LastYield").text = "Yield: 0.0"
 		
 		var button = entry.get_node("Button_LevelUp")
-		button.text = "Upgrade (%.2f)" % gen.get("level_cost", 1.0)
+		button.text = "Upgrade (%.2f)" % gen.get("level_cost")
 		button.pressed.connect(_on_level_up_pressed.bind(gen["id"], entry))
 		
 		entry.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -99,7 +99,7 @@ func _on_level_up_pressed(gen_id: String, entry: Node):
 	if GeneratorManager.level_up_generator(gen_id):
 		var gen = GeneratorManager.get_generator_by_id(gen_id)
 		entry.get_node("Label_Level").text = "Lv " + str(gen["level"])
-		entry.get_node("Button_LevelUp").text = "Upgrade (%.2f)" % gen.get("level_cost", 1.0)
+		entry.get_node("Button_LevelUp").text = "Upgrade (%.2f)" % gen.get("level_cost")
 		update_level_up_buttons()
 		print("Successfully leveled up: ", gen_id)
 	else:
@@ -116,12 +116,12 @@ func update_level_up_buttons():
 			continue
 			
 		var gen_id = entry.name
-		var gen = GeneratorManager.get_generator_by_id(gen_id)
+		var gen = GeneratorManager.generator_collection.get_generator_by_id(gen_id)
 		if gen.is_empty():
 			continue
 			
 		var button = entry.get_node("Button_LevelUp")
-		var cost = gen.get("level_cost", 1.0)
+		var cost = gen.get("level_cost")
 		button.text = "Upgrade (%.2f)" % cost
 		
 		var can_afford = currency >= cost

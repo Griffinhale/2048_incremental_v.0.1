@@ -25,3 +25,7 @@ func perform_prestige_reset():
 	GeneratorManager.reset_all()
 #	ScreenManager.reset_board()
 	# Other hooks...
+func get_current_prestige_bonuses() -> Dictionary:
+	# Stub - return empty for now
+	# In v0.5+ this will return actual prestige bonuses
+	return {}

@@ -62,3 +62,13 @@ func _convert_score_to_currency(stats: GameStats) -> float:
 	var bonus = stats.merge_efficiency * 5.0 + stats.combo_peak * 0.02
 	var duration_bonus = stats.duration / 60.0  # 1 coin per minute
 	return base + bonus + duration_bonus
+	
+func get_tile_frequency(tile_value: int) -> float:
+	# Stub - return 0 for now
+	# Later this will return actual frequency data
+	return 0.0
+
+func get_tile_usage_stats() -> Dictionary:
+	# Stub - return empty for now
+	# Later this will return tile merge statistics
+	return {}
