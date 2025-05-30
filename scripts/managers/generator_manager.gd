@@ -23,7 +23,25 @@ func _ready():
 
 func initialize_yield_algorithms():
 	pass
+# Add this method to GeneratorManager:
+func check_for_newly_unlocked_generators():
+	var newly_unlocked = []
+	
+	for gen in generator_collection.generators:
+		var was_unlocked = gen.get("previously_unlocked", false)
+		var is_now_unlocked = is_generator_unlocked(gen)
+		
+		if not was_unlocked and is_now_unlocked:
+			gen["previously_unlocked"] = true
+			newly_unlocked.append(gen.label)
+	
+	if newly_unlocked.size() > 0:
+		print("Newly unlocked generators: ", newly_unlocked)
+		# Emit signal to update UI
+		emit_signal("generators_unlocked", newly_unlocked)
 
+# Add this signal to your GeneratorManager:
+signal generators_unlocked(generator_names: Array)
 func load_generators():
 	# Try to load from file first
 	if ResourceLoader.exists("res://data/generators.tres"):
@@ -52,31 +70,34 @@ func start_all_generators():
 		timers[gen_data.id] = timer
 		
 func is_generator_unlocked(gen: GeneratorData) -> bool:
-	if gen.active:
-		return true
-
-	# Check if all required tiles have been seen
-	for tile in gen.tile_targets:
-		if not StatsTracker.has_seen_tile(tile):
+	# Get the highest tile the player has achieved
+	var highest_tile = StatsTracker.get_highest_tile_achieved()
+	
+	# Check if both target tiles are achievable (less than or equal to highest achieved)
+	for tile_target in gen.tile_targets:
+		if tile_target > highest_tile:
 			return false
-
-	# Unlock the generator
-	gen.active = true
-	debug_data.active_generators += 1
-	emit_signal("generator_unlocked", gen.id)
-	print("Generator unlocked: ", gen.label)
+	
 	return true
-
+func can_level_up_generator(gen: GeneratorData) -> bool:
+	# Generator must be unlocked to level up
+	if not is_generator_unlocked(gen):
+		return false
+	
+	# Must have enough currency
+	var cost = gen.level_cost
+	if not CurrencyManager.can_afford("conversion", cost):
+		return false
+	
+	return true
+# Update the tick function to only generate for unlocked generators
 func _on_generator_tick(generator_id: String):
 	var gen = generator_collection.get_generator_by_id(generator_id)
 	if not gen:
 		return
 	
-	if not is_generator_unlocked(gen):
-		return
-	
-	# Only generate if generator has been leveled up at least once
-	if gen.level <= 0:
+	# Must be unlocked and leveled up to generate
+	if not is_generator_unlocked(gen) or gen.level <= 0:
 		return
 		
 	var yield_curr = calculate_yield(gen)
@@ -109,18 +130,33 @@ func level_up_generator(id: String) -> bool:
 	if not gen:
 		print("Generator not found: ", id)
 		return false
+	
+	# Check if generator can be leveled up
+	if not can_level_up_generator(gen):
+		var status = get_generator_unlock_status(gen)
+		if not status.unlocked:
+			print("Generator %s is locked. Need tiles: %s" % [gen.label, status.blocking_tiles])
+		elif not status.can_afford:
+			print("Not enough currency to level up %s (cost: %.2f)" % [gen.label, gen.level_cost])
+		return false
 		
 	print("Attempting to level up %s - Cost: %.2f, Available: %.2f" % [id, gen.level_cost, CurrencyManager.get_currency("conversion")])
 	
 	if CurrencyManager.spend_currency("conversion", gen.level_cost):
 		gen.level += 1
 		gen.level_cost *= gen.cost_growth
+		
+		# Activate generator when first leveled up
 		if gen.level == 1:
 			gen.active = true
+			
 		print("Leveled up %s to level %d (new cost: %.2f)" % [gen.label, gen.level, gen.level_cost])
+		
+		# Emit signal for UI updates
+		emit_signal("generator_updated", id, calculate_yield(gen))
 		return true
 	else:
-		print("Not enough currency to level up %s (cost: %.2f)" % [gen.label, gen.level_cost])
+		print("Currency spend failed for %s" % gen.label)
 		return false
 			
 func is_generator_active(id: String) -> bool:
@@ -183,3 +219,25 @@ func get_total_yield_per_second() -> float:
 # Save current generator state
 func save_generator_state():
 	ResourceSaver.save(generator_collection, "res://data/generators.tres")
+
+func get_generator_unlock_status(gen: GeneratorData) -> Dictionary:
+	var highest_tile = StatsTracker.get_highest_tile_achieved()
+	var unlocked = is_generator_unlocked(gen)
+	var can_afford = CurrencyManager.can_afford("conversion", gen.level_cost)
+	
+	var status = {
+		"unlocked": unlocked,
+		"can_afford": can_afford,
+		"can_level_up": unlocked and can_afford,
+		"highest_tile": highest_tile,
+		"required_tiles": gen.tile_targets.duplicate(),
+		"blocking_tiles": []
+	}
+	
+	# Find which tiles are blocking the unlock
+	if not unlocked:
+		for tile_target in gen.tile_targets:
+			if tile_target > highest_tile:
+				status.blocking_tiles.append(tile_target)
+	
+	return status

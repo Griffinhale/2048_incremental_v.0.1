@@ -1,10 +1,13 @@
-[gd_scene format=3 uid="uid://bcroiv73v2c3j"]
+[gd_scene load_steps=2 format=3 uid="uid://bcroiv73v2c3j"]
+
+[ext_resource type="Script" uid="uid://bok5owspkc37y" path="res://scripts/generators/GeneratorEntry.gd" id="1_8icc4"]
 
 [node name="GeneratorEntry" type="HBoxContainer"]
 offset_right = 40.0
 offset_bottom = 40.0
 size_flags_horizontal = 3
 alignment = 1
+script = ExtResource("1_8icc4")
 
 [node name="Label_ID" type="Label" parent="."]
 layout_mode = 2

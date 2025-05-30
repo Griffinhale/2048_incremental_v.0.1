@@ -120,6 +120,8 @@ func spawn_post_move_tile():
 		var val = spawner.get_next_tile_value()
 		_on_tile_spawned(val, pos)
 		queue_updated.emit(spawner.get_queue())
+		StatsTracker.track_tile_creation(val)
+		GeneratorManager.check_for_newly_unlocked_generators()
 
 # === Debug helper to verify tile positions match internal grid ===
 func verify_grid_consistency():

@@ -365,7 +365,7 @@ static func create_default_generators() -> GeneratorCollection:
 
 static func save_generators_to_file():
 	var generators = create_generators_with_modifiers()
-	var result = ResourceSaver.save(generators, "res://data/generators.tres")
+	var result = ResourceSaver.save(generators, "res://data/generators/generators.tres")
 	if result == OK:
 		print("Generators saved successfully!")
 	else:

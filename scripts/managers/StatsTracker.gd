@@ -1,13 +1,17 @@
 extends Node
 
+signal new_highest_tile(value: int)
+
 var total_games_played: int = 0
 var games_since_last_conversion: int = 0
 var all_game_stats: Array = []
+var highest_tile_achieved: int = 1  # Start with tile 1 (2^1 = 2) as achieved
 
 var last_conversion_amount: float = 0.0
 var last_converted_games: Array = []
 var total_stashed_value: float = 0.0  # Preview value of current stash
-
+# Track how many tiles of each value were spawned globally
+var tile_spawn_counts := {}
 var seen_tiles := {}  # Set of tile values observed this prestige
 
 func mark_tile_seen(value: int):
@@ -16,12 +20,36 @@ func mark_tile_seen(value: int):
 func reset_seen_tiles():
 	seen_tiles.clear()
 
-func has_seen_tile(value: int) -> bool:
-	return seen_tiles.has(value)
 
-# Track how many tiles of each value were spawned globally
-var tile_spawn_counts := {}
 
+func track_tile_creation(tile_value: int):
+	# Call this whenever a new tile is created on the board
+	var tile_power = log(tile_value) / log(2)  # Convert value back to power (2^n)
+	highest_tile_achieved = max(highest_tile_achieved, int(tile_power))
+	
+	# Also track for has_seen_tile functionality
+	if not seen_tiles.has(int(tile_power)):
+		seen_tiles[int(tile_power)] = true
+		print("New tile discovered: %d (value: %d)" % [int(tile_power), tile_value])
+
+func get_highest_tile_achieved() -> int:
+	return highest_tile_achieved
+
+func get_highest_tile_value() -> int:
+	# Returns the actual tile value (2^n) instead of the power
+	return int(pow(2, highest_tile_achieved))
+
+# Update existing has_seen_tile to work with the new system
+func has_seen_tile(tile_power: int) -> bool:
+	return tile_power <= highest_tile_achieved
+
+# For debugging
+func get_unlock_info() -> Dictionary:
+	return {
+		"highest_tile_power": highest_tile_achieved,
+		"highest_tile_value": get_highest_tile_value(),
+		"seen_tiles": seen_tiles.keys()
+	}
 func record_game(stats: GameStats):
 	total_games_played += 1
 	games_since_last_conversion += 1

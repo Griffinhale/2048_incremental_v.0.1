@@ -110,6 +110,7 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ocn0r")
 
 [node name="DebugMargins" type="MarginContainer" parent="."]
+visible = false
 top_level = true
 layout_mode = 1
 anchors_preset = 15
@@ -123,6 +124,7 @@ theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 32
 
 [node name="DebugPanel" parent="DebugMargins" instance=ExtResource("7_pr20y")]
+visible = false
 layout_mode = 2
 
 [node name="GameMargins" type="MarginContainer" parent="."]

@@ -20,6 +20,9 @@ CurrencyManager="*res://scripts/managers/currency_manager.gd"
 StatsTracker="*res://scripts/managers/StatsTracker.gd"
 PrestigeManager="*res://scripts/managers/prestige_manager.gd"
 UpgradeManager="*res://scripts/managers/upgrade_manager.gd"
+AscensionManager="*res://scripts/managers/ascension_manager.gd"
+ChallengeManager="*res://scripts/managers/challenge_manager.gd"
+LoreManager="*res://scripts/managers/lore_manager.gd"
 
 [display]
 
