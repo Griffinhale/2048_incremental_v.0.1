@@ -7,7 +7,7 @@ extends Resource
 @export var tile_targets: Array
 @export var level: int = 0
 @export var base_yield: float
-@export var growth_curve: String # "linear" or "exponential"
+@export var growth_curve: String
 @export var growth_factor: float
 @export var interval_seconds: float
 @export var multiplier: float = 1.0
@@ -16,6 +16,7 @@ extends Resource
 @export var active: bool = false
 @export var previously_unlocked: bool
 @export var newly_unlocked: bool
+
 # Constructor for easy creation
 func _init(
 	p_id: String = "",

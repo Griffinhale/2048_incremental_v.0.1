@@ -61,6 +61,8 @@ func _on_convert_stash_pressed():
 	top_bar_panel.get_node("GameOverBox/Scores/ScoreLabel").text = "Score: 0"
 	convert_and_stash.disabled = true
 	
+func _on_board_canvas_game_over(stats: GameStats) -> void:
+	show_game_over(stats)
 	
 func _on_current_score_changed(value: int):
 	current_score = value
@@ -160,7 +162,6 @@ func swap_screen():
 		show_stats_screen()
 	if current_screen == Screen.UPGRADES:
 		show_upgrades_screen()
-	
 
 func _on_play_again_pressed():
 	reset_to_gameplay()
@@ -204,6 +205,3 @@ func transition_to(screen_name: String):
 	print("Transitioning to: ", screen_name)
 	current_ui_state = screen_name
 	emit_signal("ui_state_changed", current_ui_state)
-
-func _on_board_canvas_game_over(stats: GameStats) -> void:
-	show_game_over(stats)

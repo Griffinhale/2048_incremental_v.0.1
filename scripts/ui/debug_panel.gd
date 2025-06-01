@@ -41,6 +41,28 @@ func _ready():
 	print("DebugPanel - Visible: %s, Position: %s, Size: %s" % [visible, global_position, size])
 	print("Content container - Visible: %s, Children count: %d" % [content_container.visible, content_container.get_child_count()])
 
+# Control button handlers
+func _on_reset_tracking_pressed():
+	CurrencyManager.reset_debug_tracking()
+	if generator_manager.has_method("reset_debug_data"):
+		generator_manager.reset_debug_data()
+	print("Debug tracking data reset")
+
+func _on_export_debug_pressed():
+	var debug_data = {
+		"timestamp": Time.get_datetime_string_from_system(),
+		"currencies": CurrencyManager.get_all_debug_info(),
+		"generators": generator_manager.get_debug_summary() if generator_manager.has_method("get_debug_summary") else {}
+	}
+	
+	# In a real implementation, you'd save this to a file
+	print("Debug data exported:")
+	print(JSON.stringify(debug_data, "\t"))
+
+func _on_refresh_timer_timeout():
+	print("Debug panel refresh triggered at: ", Time.get_time_string_from_system())
+	update_debug_display()
+
 func setup_ui():
 	# Create main container if it doesn't exist
 	if not content_container:
@@ -403,10 +425,6 @@ func initialize_activity_labels():
 	activity_labels["last_update"] = activity_label
 	section.add_child(activity_label)
 
-func _on_refresh_timer_timeout():
-	print("Debug panel refresh triggered at: ", Time.get_time_string_from_system())
-	update_debug_display()
-
 func update_debug_display():
 	update_currency_debug()
 	update_generator_debug()
@@ -579,24 +597,6 @@ func update_recent_activity_debug():
 	
 	if activity_labels.has("last_update"):
 		activity_labels["last_update"].text = "Last Update: %s" % Time.get_datetime_string_from_system()
-
-# Control button handlers
-func _on_reset_tracking_pressed():
-	CurrencyManager.reset_debug_tracking()
-	if generator_manager.has_method("reset_debug_data"):
-		generator_manager.reset_debug_data()
-	print("Debug tracking data reset")
-
-func _on_export_debug_pressed():
-	var debug_data = {
-		"timestamp": Time.get_datetime_string_from_system(),
-		"currencies": CurrencyManager.get_all_debug_info(),
-		"generators": generator_manager.get_debug_summary() if generator_manager.has_method("get_debug_summary") else {}
-	}
-	
-	# In a real implementation, you'd save this to a file
-	print("Debug data exported:")
-	print(JSON.stringify(debug_data, "\t"))
 
 # Public methods for toggling debug sections
 func toggle_debug_section(section_name: String, enabled: bool):

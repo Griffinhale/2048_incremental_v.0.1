@@ -14,36 +14,25 @@ func _ready():
 	
 	update_generator_display()
 
-func initialize_panel():
-	print("Initializing Generator Panel")
-	
-	# Connect to managers if they exist
-	if GeneratorManager:
-		if not GeneratorManager.is_connected("generator_updated", _on_generator_updated):
-			GeneratorManager.generator_updated.connect(_on_generator_updated)
-			print("Connected to GeneratorManager.generator_updated")
-		
-		if not GeneratorManager.is_connected("generator_unlocked", _on_generator_unlocked):
-			GeneratorManager.generator_unlocked.connect(_on_generator_unlocked)
-			print("Connected to GeneratorManager.generator_unlocked")
-	else:
-		print("GeneratorManager not found!")
-	
-	if CurrencyManager:
-		if not CurrencyManager.is_connected("currency_changed", _on_currency_changed):
-			CurrencyManager.currency_changed.connect(_on_currency_changed)
-			print("Connected to CurrencyManager.currency_changed")
-	else:
-		print("CurrencyManager not found!")
-	
-	if StatsTracker:
-		if not StatsTracker.is_connected("new_highest_tile", _on_highest_tile_changed):
-			StatsTracker.new_highest_tile.connect(_on_highest_tile_changed)
-	populate_generators()
-	
-	update_currency_display()
-	is_initialized = true
+func _on_level_up_pressed(generator_id: String):
+	var success = GeneratorManager.level_up_generator(generator_id)
+	if success:
+		print("level up")
+		# Just update currency display and the specific entry
+		update_currency_display()
 
+# Call this when the highest tile changes
+func _on_highest_tile_changed():
+	update_generator_display()
+
+func _on_generator_updated(id: String, yield_val: float):
+	# Update just the specific generator entry
+	for child in generator_list.get_children():
+		if is_instance_valid(child) and child.name == id:
+			var gen = GeneratorManager.generator_collection.get_generator_by_id(id)
+			if gen:
+				update_generator_entry_data(child, gen)
+			break
 
 func _on_generator_unlocked(gen_id: String):
 	print("Generator unlocked: ", gen_id)
@@ -54,10 +43,22 @@ func _on_currency_changed(currency_type: String, new_value: float):
 	update_currency_display()
 	#update_level_up_buttons()
 
+func _on_visibility_changed() -> void:
+	if not is_initialized:
+		return
+		
+	if visible and GeneratorManager:
+		print(GeneratorManager.generator_collection)
+		GeneratorManager.refresh_generator_activation()
+		populate_generators()  # Refresh in case new generators were unlocked
+		update_currency_display()
+		print(GeneratorManager.generator_collection)
+
 func update_currency_display():
 	if currency_label and CurrencyManager:
 		var currency = CurrencyManager.get_currency("conversion")
 		currency_label.text = "Conversion Currency: %.2f" % currency
+
 func update_generator_entry_data(entry: Control, gen: GeneratorData):
 	if not is_instance_valid(entry):
 		return
@@ -87,7 +88,7 @@ func update_generator_entry_data(entry: Control, gen: GeneratorData):
 			entry.modulate = Color(1, 1, 1, 1)
 		else:
 			entry.modulate = Color(0.7, 0.7, 0.7, 1)
-			
+
 func populate_generators():
 	if not GeneratorManager:
 		print("GeneratorManager not available for populate_generators")
@@ -121,7 +122,7 @@ func populate_generators():
 		entry.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		generator_list.add_child(entry)
 		print("Added generator entry: ", gen["label"])
-		
+
 func update_level_up_buttons():
 	if not CurrencyManager or not GeneratorManager or not generator_list:
 		return
@@ -150,23 +151,40 @@ func update_level_up_buttons():
 		else:
 			entry.modulate = Color(0.7, 0.7, 0.7, 1)
 
-func _on_visibility_changed() -> void:
-	if not is_initialized:
-		return
+func initialize_panel():
+	print("Initializing Generator Panel")
+	
+	# Connect to managers if they exist
+	if GeneratorManager:
+		if not GeneratorManager.is_connected("generator_updated", _on_generator_updated):
+			GeneratorManager.generator_updated.connect(_on_generator_updated)
+			print("Connected to GeneratorManager.generator_updated")
 		
-	if visible and GeneratorManager:
-		print(GeneratorManager.generator_collection)
-		GeneratorManager.refresh_generator_activation()
-		populate_generators()  # Refresh in case new generators were unlocked
-		update_currency_display()
-		print(GeneratorManager.generator_collection)
-		
-# Public function to refresh the panel (can be called from UI manager)
+		if not GeneratorManager.is_connected("generator_unlocked", _on_generator_unlocked):
+			GeneratorManager.generator_unlocked.connect(_on_generator_unlocked)
+			print("Connected to GeneratorManager.generator_unlocked")
+	else:
+		print("GeneratorManager not found!")
+	
+	if CurrencyManager:
+		if not CurrencyManager.is_connected("currency_changed", _on_currency_changed):
+			CurrencyManager.currency_changed.connect(_on_currency_changed)
+			print("Connected to CurrencyManager.currency_changed")
+	else:
+		print("CurrencyManager not found!")
+	
+	if StatsTracker:
+		if not StatsTracker.is_connected("new_highest_tile", _on_highest_tile_changed):
+			StatsTracker.new_highest_tile.connect(_on_highest_tile_changed)
+	populate_generators()
+	
+	update_currency_display()
+	is_initialized = true
+
 func refresh_panel():
 	if is_initialized:
 		populate_generators()
 		update_currency_display()
-# Update your generator_panel.gd to handle locked states
 
 func update_generator_display():
 	# Just refresh the existing entries without rebuilding
@@ -206,7 +224,7 @@ func update_generator_entry(entry: Control, gen: GeneratorData):
 			entry.modulate = Color(1, 1, 1, 1)
 		else:
 			entry.modulate = Color(0.7, 0.7, 0.7, 1)
-			
+
 func create_new_generator_entry(gen: GeneratorData):
 	var entry = GENERATOR_ENTRY_SCENE.instantiate()
 	entry.name = gen["id"]
@@ -221,24 +239,3 @@ func create_new_generator_entry(gen: GeneratorData):
 	entry.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	generator_list.add_child(entry)
 	print("Created new generator entry: ", gen["label"])
-
-func _on_level_up_pressed(generator_id: String):
-	var success = GeneratorManager.level_up_generator(generator_id)
-	if success:
-		print("level up")
-		# Just update currency display and the specific entry
-		update_currency_display()
-
-# Call this when the highest tile changes
-func _on_highest_tile_changed():
-	update_generator_display()
-
-
-func _on_generator_updated(id: String, yield_val: float):
-	# Update just the specific generator entry
-	for child in generator_list.get_children():
-		if is_instance_valid(child) and child.name == id:
-			var gen = GeneratorManager.generator_collection.get_generator_by_id(id)
-			if gen:
-				update_generator_entry_data(child, gen)
-			break

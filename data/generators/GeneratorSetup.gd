@@ -359,7 +359,7 @@ static func calculate_synergy_forecast(gen: GeneratorData) -> Dictionary:
 	# Placeholder for synergy prediction
 	return {"forecast": "positive", "confidence": 0.8}
 
-# === PUBLIC INTERFACE ===
+# === PUBboopLIC INTERFACE ===
 static func create_default_generators() -> GeneratorCollection:
 	return create_generators_with_modifiers()
 
