@@ -16,6 +16,7 @@ var currencies := {
 # Conversion mechanics
 var conversion_rate := 1.0
 var conversion_efficiency := 1.0
+var last_conversion_amount: float = 0.0
 var score_accumulator := 0.0  # Tracks unconverted score
 
 # Debug tracking
@@ -89,6 +90,30 @@ func convert_score_to_currency(score_amount: float) -> float:
 	add_currency("conversion", converted_amount)
 	
 	return converted_amount
+
+# Add to CurrencyManager
+func convert_game_stats_to_currency(stats: GameStats) -> float:
+	var base = stats.score * 0.01 + stats.moves * 0.05
+	var bonus = stats.merge_efficiency * 5.0 + stats.combo_peak * 0.02
+	var duration_bonus = stats.duration / 60.0
+	var total_earned = base + bonus + duration_bonus
+	
+	# Add the currency through our existing system
+	add_currency("conversion", total_earned)
+	
+	# Track this conversion for debug/stats
+	if debug_enabled:
+		track_currency_change("conversion", total_earned, "game_conversion")
+	
+	return total_earned
+
+func convert_multiple_games(game_stats_array: Array) -> float:
+	var total_earned := 0.0
+	
+	for stats in game_stats_array:
+		total_earned += convert_game_stats_to_currency(stats)
+	
+	return total_earned
 
 func auto_convert_score(threshold: float = 100.0) -> bool:
 	var current_score = get_currency("score")

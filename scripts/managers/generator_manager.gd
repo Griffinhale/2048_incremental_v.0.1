@@ -1,7 +1,8 @@
 extends Node
 
+# Add this signal to your GeneratorManager:
+signal generators_unlocked(generator_names: Array)
 signal generator_updated(id: String, new_yield: float)
-signal generator_unlocked(id: String)
 
 var generator_collection: GeneratorCollection
 var timers := {}
@@ -40,8 +41,7 @@ func check_for_newly_unlocked_generators():
 		# Emit signal to update UI
 		emit_signal("generators_unlocked", newly_unlocked)
 
-# Add this signal to your GeneratorManager:
-signal generators_unlocked(generator_names: Array)
+
 func load_generators():
 	# Try to load from file first
 	if ResourceLoader.exists("res://data/generators.tres"):

@@ -1,7 +1,5 @@
 extends Control
 
-#region Initialization
-
 # === Constants and resources ===
 const ROWS := 4
 const COLS := 4
@@ -46,11 +44,7 @@ var input_map := {
 	"up": Direction.UP,
 	"down": Direction.DOWN,
 }
-#endregion
 
-#region Custom function definitions
-
-#region Signal handlers
 
 # === Creates and animates a new tile ===
 func _on_tile_spawned(value: int, pos: Vector2):
@@ -84,7 +78,7 @@ func _on_restart_requested():
 func _on_scores_requested():
 	print("Scores button clicked (not implemented)")
 
-#endregion
+
 
 # === Recalculate layout if screen size changes ===
 func resize():
@@ -293,9 +287,7 @@ func reset_board():
 	queue_redraw()
 	print("Board reset complete")
 
-#endregion
 
-#region Godot hooks
 func _ready():
 	connect("resized", Callable(self, "calculate_board_geometry"))
 	calculate_board_geometry()
@@ -351,4 +343,3 @@ func _unhandled_input(event: InputEvent):
 			verify_grid_consistency()
 			if check_game_over():
 				trigger_game_over()
-#endregion

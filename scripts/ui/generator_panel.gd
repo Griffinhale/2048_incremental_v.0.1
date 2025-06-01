@@ -19,7 +19,7 @@ func _on_level_up_pressed(generator_id: String):
 	if success:
 		print("level up")
 		# Just update currency display and the specific entry
-		update_currency_display()
+#		update_currency_display()
 
 # Call this when the highest tile changes
 func _on_highest_tile_changed():
@@ -40,7 +40,8 @@ func _on_generator_unlocked(gen_id: String):
 	#populate_generators()
 
 func _on_currency_changed(currency_type: String, new_value: float):
-	update_currency_display()
+	if currency_label and currency_type == "conversion":
+		currency_label.text = "Conversion Currency: %.2f" % new_value
 	#update_level_up_buttons()
 
 func _on_visibility_changed() -> void:
@@ -51,13 +52,9 @@ func _on_visibility_changed() -> void:
 		print(GeneratorManager.generator_collection)
 		GeneratorManager.refresh_generator_activation()
 		populate_generators()  # Refresh in case new generators were unlocked
-		update_currency_display()
+#		update_currency_display()
 		print(GeneratorManager.generator_collection)
 
-func update_currency_display():
-	if currency_label and CurrencyManager:
-		var currency = CurrencyManager.get_currency("conversion")
-		currency_label.text = "Conversion Currency: %.2f" % currency
 
 func update_generator_entry_data(entry: Control, gen: GeneratorData):
 	if not is_instance_valid(entry):
@@ -161,7 +158,7 @@ func initialize_panel():
 			print("Connected to GeneratorManager.generator_updated")
 		
 		if not GeneratorManager.is_connected("generator_unlocked", _on_generator_unlocked):
-			GeneratorManager.generator_unlocked.connect(_on_generator_unlocked)
+			GeneratorManager.generators_unlocked.connect(_on_generator_unlocked)
 			print("Connected to GeneratorManager.generator_unlocked")
 	else:
 		print("GeneratorManager not found!")
@@ -178,13 +175,13 @@ func initialize_panel():
 			StatsTracker.new_highest_tile.connect(_on_highest_tile_changed)
 	populate_generators()
 	
-	update_currency_display()
+#$	update_currency_display()
 	is_initialized = true
 
 func refresh_panel():
 	if is_initialized:
 		populate_generators()
-		update_currency_display()
+#		update_currency_display()
 
 func update_generator_display():
 	# Just refresh the existing entries without rebuilding
