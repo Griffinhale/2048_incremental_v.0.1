@@ -14,7 +14,8 @@ extends Resource
 @export var level_cost: float
 @export var cost_growth: float
 @export var active: bool = false
-
+@export var previously_unlocked: bool
+@export var newly_unlocked: bool
 # Constructor for easy creation
 func _init(
 	p_id: String = "",

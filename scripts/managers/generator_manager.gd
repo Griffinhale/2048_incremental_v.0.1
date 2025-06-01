@@ -28,7 +28,7 @@ func check_for_newly_unlocked_generators():
 	var newly_unlocked = []
 	
 	for gen in generator_collection.generators:
-		var was_unlocked = gen.get("previously_unlocked", false)
+		var was_unlocked = gen.get("previously_unlocked")
 		var is_now_unlocked = is_generator_unlocked(gen)
 		
 		if not was_unlocked and is_now_unlocked:

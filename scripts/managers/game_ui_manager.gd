@@ -130,7 +130,7 @@ func show_idle_screen():
 	shrink_stats_panel()
 	shrink_upgrades_panel()
 	slide_idle_panel()
-	idle_panel.update_level_up_buttons()
+	#idle_panel.update_level_up_buttons()
 
 func show_game_screen():
 	shrink_stats_panel()

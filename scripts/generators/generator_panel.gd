@@ -12,7 +12,7 @@ func _ready():
 	
 	StatsTracker.new_highest_tile.connect(_on_highest_tile_changed)  # You'll need to add this signal
 	
-	
+	update_generator_display()
 
 func initialize_panel():
 	print("Initializing Generator Panel")
@@ -40,7 +40,7 @@ func initialize_panel():
 		if not StatsTracker.is_connected("new_highest_tile", _on_highest_tile_changed):
 			StatsTracker.new_highest_tile.connect(_on_highest_tile_changed)
 	populate_generators()
-	update_generator_display()
+	
 	update_currency_display()
 	is_initialized = true
 
@@ -48,17 +48,46 @@ func initialize_panel():
 func _on_generator_unlocked(gen_id: String):
 	print("Generator unlocked: ", gen_id)
 	# Refresh the entire panel when a new generator is unlocked
-	populate_generators()
+	#populate_generators()
 
 func _on_currency_changed(currency_type: String, new_value: float):
 	update_currency_display()
-	update_level_up_buttons()
+	#update_level_up_buttons()
 
 func update_currency_display():
 	if currency_label and CurrencyManager:
 		var currency = CurrencyManager.get_currency("conversion")
 		currency_label.text = "Conversion Currency: %.2f" % currency
+func update_generator_entry_data(entry: Control, gen: GeneratorData):
+	if not is_instance_valid(entry):
+		return
 		
+	entry.get_node("Label_ID").text = gen["label"]
+	entry.get_node("Label_Level").text = "Lv " + str(gen["level"])
+	
+	# Get the last yield from GeneratorManager debug data
+	var last_yield = 0.0
+	if GeneratorManager.debug_data.last_yields.has(gen["id"]):
+		last_yield = GeneratorManager.debug_data.last_yields[gen["id"]]
+	
+	entry.get_node("Label_LastYield").text = "Yield: %.2f" % last_yield
+	
+	var button = entry.get_node("Button_LevelUp")
+	button.text = "Upgrade (%.2f)" % gen.get("level_cost")
+	
+	# Update affordability
+	if CurrencyManager:
+		var currency = CurrencyManager.get_currency("conversion")
+		var cost = gen.get("level_cost")
+		var can_afford = currency >= cost
+		button.disabled = not can_afford
+		
+		# Visual feedback
+		if can_afford:
+			entry.modulate = Color(1, 1, 1, 1)
+		else:
+			entry.modulate = Color(0.7, 0.7, 0.7, 1)
+			
 func populate_generators():
 	if not GeneratorManager:
 		print("GeneratorManager not available for populate_generators")
@@ -66,7 +95,7 @@ func populate_generators():
 		
 	print("Populating generators")
 	
-	# Clear existing entries
+	# Clear existing entries completely to avoid duplicates
 	for child in generator_list.get_children():
 		child.queue_free()
 	
@@ -81,20 +110,18 @@ func populate_generators():
 			
 		var entry = GENERATOR_ENTRY_SCENE.instantiate()
 		entry.name = gen["id"]
-		entry.get_node("Label_ID").text = gen["label"]
-		entry.get_node("Label_Level").text = "Lv " + str(gen["level"])
-		entry.get_node("Label_LastYield").text = "Yield: 0.0"
 		
+		# Set up the entry data
+		update_generator_entry_data(entry, gen)
+		
+		# Connect the level up button
 		var button = entry.get_node("Button_LevelUp")
-		button.text = "Upgrade (%.2f)" % gen.get("level_cost")
-		button.pressed.connect(_on_level_up_pressed.bind(gen["id"], entry))
+		button.pressed.connect(_on_level_up_pressed.bind(gen["id"]))
 		
 		entry.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		generator_list.add_child(entry)
 		print("Added generator entry: ", gen["label"])
-	
-	update_level_up_buttons()
-
+		
 func update_level_up_buttons():
 	if not CurrencyManager or not GeneratorManager or not generator_list:
 		return
@@ -107,7 +134,7 @@ func update_level_up_buttons():
 			
 		var gen_id = entry.name
 		var gen = GeneratorManager.generator_collection.get_generator_by_id(gen_id)
-		if gen.is_empty():
+		if !gen:
 			continue
 			
 		var button = entry.get_node("Button_LevelUp")
@@ -128,10 +155,12 @@ func _on_visibility_changed() -> void:
 		return
 		
 	if visible and GeneratorManager:
+		print(GeneratorManager.generator_collection)
 		GeneratorManager.refresh_generator_activation()
 		populate_generators()  # Refresh in case new generators were unlocked
 		update_currency_display()
-
+		print(GeneratorManager.generator_collection)
+		
 # Public function to refresh the panel (can be called from UI manager)
 func refresh_panel():
 	if is_initialized:
@@ -140,38 +169,76 @@ func refresh_panel():
 # Update your generator_panel.gd to handle locked states
 
 func update_generator_display():
-	# Clear existing entries
+	# Just refresh the existing entries without rebuilding
 	for child in generator_list.get_children():
-		child.queue_free()
-	
-	# Create entries for ALL generators, not just unlocked ones
-	for gen in GeneratorManager.generator_collection.generators:
-		create_generator_entry(gen)
+		if is_instance_valid(child):
+			var gen_id = child.name
+			var gen = GeneratorManager.generator_collection.get_generator_by_id(gen_id)
+			if gen:
+				update_generator_entry_data(child, gen)
 
-func create_generator_entry(gen: GeneratorData):
+func update_generator_entry(entry: Control, gen: GeneratorData):
+	if not is_instance_valid(entry):
+		return
+		
+	entry.get_node("Label_ID").text = gen["label"]
+	entry.get_node("Label_Level").text = "Lv " + str(gen["level"])
+	
+	# Get the last yield from GeneratorManager debug data
+	var last_yield = 0.0
+	if GeneratorManager.debug_data.last_yields.has(gen["id"]):
+		last_yield = GeneratorManager.debug_data.last_yields[gen["id"]]
+	
+	entry.get_node("Label_LastYield").text = "Yield: %.2f" % last_yield
+	
+	var button = entry.get_node("Button_LevelUp")
+	button.text = "Upgrade (%.2f)" % gen.get("level_cost")
+	
+	# Update affordability
+	if CurrencyManager:
+		var currency = CurrencyManager.get_currency("conversion")
+		var cost = gen.get("level_cost")
+		var can_afford = currency >= cost
+		button.disabled = not can_afford
+		
+		# Visual feedback
+		if can_afford:
+			entry.modulate = Color(1, 1, 1, 1)
+		else:
+			entry.modulate = Color(0.7, 0.7, 0.7, 1)
+			
+func create_new_generator_entry(gen: GeneratorData):
 	var entry = GENERATOR_ENTRY_SCENE.instantiate()
-	var status = GeneratorManager.get_generator_unlock_status(gen)
+	entry.name = gen["id"]
+	
+	# Set up initial values
+	update_generator_entry(entry, gen)
+	
+	# Connect button
+	var button = entry.get_node("Button_LevelUp")
+	button.pressed.connect(_on_level_up_pressed.bind(gen["id"], entry))
+	
+	entry.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	generator_list.add_child(entry)
-	# Set up the entry with status information
-	entry.setup_generator(gen, status)
-	
-	# Connect the level up button
-	entry.level_up_button.pressed.connect(_on_level_up_pressed.bind(gen.id))
-	
-	
+	print("Created new generator entry: ", gen["label"])
 
 func _on_level_up_pressed(generator_id: String):
 	var success = GeneratorManager.level_up_generator(generator_id)
 	if success:
-		# Refresh the display to show new costs/levels
-		update_generator_display()
+		print("level up")
+		# Just update currency display and the specific entry
+		update_currency_display()
 
 # Call this when the highest tile changes
 func _on_highest_tile_changed():
 	update_generator_display()
 
 
-
 func _on_generator_updated(id: String, yield_val: float):
-	# Update just the specific generator entry if needed
-	update_generator_display()
+	# Update just the specific generator entry
+	for child in generator_list.get_children():
+		if is_instance_valid(child) and child.name == id:
+			var gen = GeneratorManager.generator_collection.get_generator_by_id(id)
+			if gen:
+				update_generator_entry_data(child, gen)
+			break

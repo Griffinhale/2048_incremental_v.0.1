@@ -12,20 +12,26 @@ extends Control
 var generator_data: GeneratorData
 var unlock_status: Dictionary
 
+func _ready() -> void:
+	pass
+	#setup gen entry label creation via code, to ensure they're created before any setups are done?
+
 func setup_generator(gen: GeneratorData, status: Dictionary):
 	generator_data = gen
 	unlock_status = status
 	
 	# Basic info
-	name_label.text = gen.label
-	level_label.text = "Level: %d" % gen.level
-	level_up_button.text = "Cost: %.1f" % gen.level_cost
+	if name_label:
+		
+		name_label.text = gen.label
+		level_label.text = "Level: %d" % gen.level
+		level_up_button.text = "Cost: %.1f" % gen.level_cost
 	
 	# Target tiles info
 	var tile_values = []
 	for tile_power in gen.tile_targets:
 		tile_values.append(str(int(pow(2, tile_power))))
-	target_tiles_label.text = "Targets: %s" % ", ".join(tile_values)
+	#target_tiles_label.text = "Targets: %s" % ", ".join(tile_values)
 	
 	# Yield info (only show if active and leveled)
 	if gen.level > 0 and status.unlocked:
@@ -41,7 +47,7 @@ func setup_generator(gen: GeneratorData, status: Dictionary):
 func update_unlock_status():
 	if unlock_status.unlocked:
 		# Generator is unlocked
-		unlock_status_label.visible = false
+#		unlock_status_label.visible = false
 		level_up_button.disabled = not unlock_status.can_afford
 		level_up_button.text = "Level Up" if unlock_status.can_afford else "Not Enough Currency"
 		
@@ -50,14 +56,14 @@ func update_unlock_status():
 		
 	else:
 		# Generator is locked
-		unlock_status_label.visible = true
+#		unlock_status_label.visible = true
 		
 		# Show what tiles are needed
 		var blocking_values = []
 		for tile_power in unlock_status.blocking_tiles:
 			blocking_values.append(str(int(pow(2, tile_power))))
 		
-		unlock_status_label.text = "Locked - Need: %s" % ", ".join(blocking_values)
+#		unlock_status_label.text = "Locked - Need: %s" % ", ".join(blocking_values)
 		level_up_button.disabled = true
 		level_up_button.text = "Locked"
 		
