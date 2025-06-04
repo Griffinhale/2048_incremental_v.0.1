@@ -29,7 +29,7 @@ var tree_statuses: Dictionary = {}
 
 func _ready():
 	# Wait for other autoloaded managers to initialize
-	await get_tree().process_frame
+	#await get_tree().process_frame
 	_initialize_upgrade_system()
 
 func _initialize_upgrade_system():
