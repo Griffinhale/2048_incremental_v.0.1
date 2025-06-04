@@ -198,6 +198,7 @@ func shrink_upgrades_panel():
 	upgrades_panel.visible = false
 
 func slide_upgrades_panel():
+	upgrades_panel.refresh_panel()
 	upgrades_margins.visible = true
 	upgrades_panel.visible = true
 

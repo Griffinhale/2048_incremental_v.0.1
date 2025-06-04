@@ -16,6 +16,7 @@ extends Resource
 @export var active: bool = false
 @export var previously_unlocked: bool
 @export var newly_unlocked: bool
+@export var unlock_requirements: Array
 
 # Constructor for easy creation
 func _init(
@@ -38,6 +39,7 @@ func _init(
 	interval_seconds = p_interval_seconds
 	level_cost = p_level_cost
 	cost_growth = p_cost_growth
+	unlock_requirements = p_tile_targets
 
 # Helper methods
 func get_spread_bonus() -> float:

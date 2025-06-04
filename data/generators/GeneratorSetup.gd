@@ -21,21 +21,21 @@ static var BASE_GENERATORS := [
 	},
 	{
 		"id": "gen_2", "label": "Prime Reactor",
-		"tile_targets": [5, 7], "base_yield": 0.8, "growth_curve": "exponential",
+		"tile_targets": [4, 6], "base_yield": 0.8, "growth_curve": "exponential",
 		"growth_factor": 1.15, "interval_seconds": 3.0, "level_cost": 3.5, "cost_growth": 1.18,
-		"unlock_requirements": [5, 7], "default_active": false
+		"unlock_requirements": [4, 6], "default_active": false
 	},
 	{
 		"id": "gen_3", "label": "Echo Producer",
-		"tile_targets": [9, 6], "base_yield": 1.5, "growth_curve": "linear",
+		"tile_targets": [9, 7], "base_yield": 1.5, "growth_curve": "linear",
 		"growth_factor": 1.5, "interval_seconds": 4.0, "level_cost": 5.0, "cost_growth": 1.2,
-		"unlock_requirements": [9, 6], "default_active": false
+		"unlock_requirements": [9, 7], "default_active": false
 	},
 	{
 		"id": "gen_4", "label": "Recursive Synth",
-		"tile_targets": [10, 4], "base_yield": 2.0, "growth_curve": "exponential",
+		"tile_targets": [10, 5], "base_yield": 2.0, "growth_curve": "exponential",
 		"growth_factor": 1.25, "interval_seconds": 6.0, "level_cost": 7.5, "cost_growth": 1.22,
-		"unlock_requirements": [10, 4], "default_active": false
+		"unlock_requirements": [10, 5], "default_active": false
 	},
 	{
 		"id": "gen_5", "label": "Singularity Driver",
