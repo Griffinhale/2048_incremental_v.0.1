@@ -26,6 +26,7 @@ signal tile_merged(value: int)
 signal queue_updated(queue: Array)
 signal game_over(stats: GameStats)
 signal score_changed(new_score: int)
+signal move_completed(move_score: int, move_merge_count: int)
 
 # === Tile spawner instance ===
 @onready var spawner = preload("res://scripts/managers/Spawner.gd").new()
@@ -131,6 +132,8 @@ func verify_grid_consistency():
 # === Moves and merges all tiles based on input direction ===
 func shift_tiles(direction: int) -> bool:
 	var moved := false
+	var move_score: int = 0
+	var move_merge_count: int = 0
 	reset_visited_flags()
 	
 	# Determine tile iteration order for correct pushing direction
@@ -175,7 +178,9 @@ func shift_tiles(direction: int) -> bool:
 					var merged_value = next_tile.value
 					next_tile.visited = true
 					merge_count += 1
+					move_merge_count += 1
 					current_score += merged_value
+					move_score += merged_value
 					if merge_count > peak_combo_score:
 						peak_combo_score = merge_count
 					tile.queue_free()
@@ -185,6 +190,9 @@ func shift_tiles(direction: int) -> bool:
 				else:
 					# Stop if blocked by a different tile
 					break
+	emit_signal("move_completed", move_score, move_merge_count)
+# In game over logic:
+#func trigger_game_over():
 
 	return moved
 
@@ -246,6 +254,8 @@ func trigger_game_over():
 	stats.combo_peak = peak_combo_score
 	stats.merge_efficiency = merge_count / float(move_count)
 	emit_signal("game_over", stats)
+		#var final_stats = create_game_stats()
+	#StatsTracker.complete_game(final_stats)  # This will award game completion XP
 	# Optionally: calculate empty cell ratio
 	#var empty_count = 0
 	#for row in tile_grid:
@@ -290,6 +300,7 @@ func reset_board():
 
 func _ready():
 	connect("resized", Callable(self, "calculate_board_geometry"))
+	connect("move_completed", StatsTracker.track_move_completed)
 	calculate_board_geometry()
 	game_start_time = Time.get_ticks_msec() / 1000.0
 	get_tree().get_root().size_changed.connect(resize)
