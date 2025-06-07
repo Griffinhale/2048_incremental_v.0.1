@@ -1,6 +1,7 @@
 extends Node
 
 signal ui_state_changed(state_name: String)
+signal ui_game_over(stats: GameStats)
 
 enum Screen {
 	GAME,
@@ -74,6 +75,7 @@ func _on_games_converted(total_earned: float, games_count: int):
 func _on_board_canvas_game_over(stats: GameStats) -> void:
 	# Just show the game over UI - don't handle game logic here
 	show_game_over(stats)
+	emit_signal("ui_game_over", stats)
 
 func _on_current_score_changed(value: int):
 	current_score = value

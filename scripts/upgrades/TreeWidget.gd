@@ -44,7 +44,12 @@ var upgrade_container: VBoxContainer
 func _ready():
 	_setup_ui()
 	_setup_input_handling()
+	CurrencyManager.currency_changed.connect(_on_currency_change)
 	await get_tree().process_frame
+
+func _on_currency_change(currency_type: String, currency_amt: float):
+	if currency_type == tree_name:
+		_update_expanded_header()
 
 func _setup_ui():
 	# Set initial size

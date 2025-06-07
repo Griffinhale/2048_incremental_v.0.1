@@ -10,6 +10,7 @@ var pending_game_stats: Array = [] # change to stacked game stats
 var last_converted_games: Array = []
 var highest_tile_achieved: int = 1  # Start with tile 1 (2^1 = 2) as achieved
 
+@onready var game_ui = "$../"
 # Track how many tiles of each value were spawned globally
 var tile_spawn_counts := {}
 var seen_tiles := {}  # Set of tile values observed this prestige
@@ -53,7 +54,6 @@ func _ready():
 	currency_manager = get_node("/root/CurrencyManager")
 	if not currency_manager:
 		push_error("StatsTracker: CurrencyManager not found")
-	
 	reset_current_game_stats()
 
 ## Game Session Management

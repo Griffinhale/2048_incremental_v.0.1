@@ -301,6 +301,7 @@ func reset_board():
 func _ready():
 	connect("resized", Callable(self, "calculate_board_geometry"))
 	connect("move_completed", StatsTracker.track_move_completed)
+	connect("game_over", StatsTracker.complete_game)
 	calculate_board_geometry()
 	game_start_time = Time.get_ticks_msec() / 1000.0
 	get_tree().get_root().size_changed.connect(resize)
