@@ -59,6 +59,74 @@ var total_spent := {}
 func _ready():
 	initialize_debug_tracking()
 	load_saved_currencies()
+	StatsTracker.xp_awarded.connect(_on_xp_awarded)
+	
+# Add this method to CurrencyManager
+func _on_xp_awarded(xp_data: Dictionary):
+	"""
+	Route XP awards based on type and context
+	Expected xp_data format:
+	{
+		"type": "active" | "conversion" | "generator",
+		"context": "move" | "game_completion" | "conversion" | "yield" | "upgrade",
+		"amount": float (optional - can be calculated here),
+		"data": { various context-specific data }
+	}
+	"""
+	
+	match xp_data.get("type", ""):
+		"active":
+			_handle_active_xp_award(xp_data)
+		"conversion":
+			_handle_conversion_xp_award(xp_data)
+		"generator":
+			_handle_generator_xp_award(xp_data)
+		_:
+			print("Warning: Unknown XP type: ", xp_data.get("type", "unknown"))
+
+func _handle_active_xp_award(xp_data: Dictionary):
+	var context = xp_data.get("context", "")
+	var data = xp_data.get("data", {})
+	
+	match context:
+		"move":
+			var score_gained = data.get("score_gained", 0)
+			var tiles_merged = data.get("tiles_merged", 0)
+			var move_efficiency = data.get("move_efficiency", 1.0)
+			award_active_xp_for_move(score_gained, tiles_merged, move_efficiency)
+			
+		"game_completion":
+			var final_score = data.get("final_score", 0)
+			var moves_made = data.get("moves_made", 0)
+			var max_tile_power = data.get("max_tile_power", 0)
+			var efficiency_metrics = data.get("efficiency_metrics", {})
+			award_active_xp_for_game_completion(final_score, moves_made, max_tile_power, efficiency_metrics)
+
+func _handle_conversion_xp_award(xp_data: Dictionary):
+	var context = xp_data.get("context", "")
+	var data = xp_data.get("data", {})
+	
+	match context:
+		"conversion":
+			var converted_amount = data.get("converted_amount", 0.0)
+			var games_in_batch = data.get("games_in_batch", 1)
+			var efficiency_rating = data.get("efficiency_rating", 1.0)
+			award_conversion_xp(converted_amount, games_in_batch, efficiency_rating)
+
+func _handle_generator_xp_award(xp_data: Dictionary):
+	var context = xp_data.get("context", "")
+	var data = xp_data.get("data", {})
+	
+	match context:
+		"yield":
+			var yield_amount = data.get("yield_amount", 0.0)
+			var active_generators = data.get("active_generators", 1)
+			var targeting_effectiveness = data.get("targeting_effectiveness", 0.0)
+			award_generator_xp_for_yield(yield_amount, active_generators, targeting_effectiveness)
+			
+		"upgrade":
+			var upgrade_cost = data.get("upgrade_cost", 0.0)
+			award_generator_xp_for_upgrade(upgrade_cost)
 
 func initialize_debug_tracking():
 	for currency_type in currencies.keys():

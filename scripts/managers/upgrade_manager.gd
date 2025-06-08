@@ -26,15 +26,13 @@ var generator_manager: GeneratorManager
 ## Aggregated bonuses for easy access
 var all_bonuses: Dictionary = {}
 var tree_statuses: Dictionary = {}
-func _on_xp_awarded(xp_type: String, amount: float, reason: String):
-	# Log XP earning events for player feedback
-	print("Earned %.1f %s from %s" % [amount, xp_type, reason])
+
 	
 func _ready():
 	# Wait for other autoloaded managers to initialize
 	#await get_tree().process_frame
 	_initialize_upgrade_system()
-	StatsTracker.xp_awarded.connect(_on_xp_awarded)
+
 
 func _initialize_upgrade_system():
 	# Get manager references

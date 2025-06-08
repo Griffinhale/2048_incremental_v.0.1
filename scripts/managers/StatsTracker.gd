@@ -94,8 +94,15 @@ func track_move_completed(score_gained: int, tiles_merged_this_move: int):
 	print("move completed")
 	# Award Active XP for this move
 	if currency_manager:
-		var xp_awarded = currency_manager.award_active_xp_for_move(score_gained, tiles_merged_this_move, move_efficiency)
-		emit_signal("xp_awarded", "active_xp", xp_awarded, "move_completed")
+		xp_awarded.emit({
+		"type": "active",
+		"context": "move", 
+		"data": {
+			"score_gained": score_gained,
+			"tiles_merged_this_move": tiles_merged_this_move,
+			"move_efficiency": move_efficiency
+		}
+	})
 
 func calculate_move_efficiency(score_gained: int, tiles_merged: int) -> float:
 	# Calculate efficiency based on score per tile merged
@@ -161,8 +168,15 @@ func track_conversion_completed(converted_amount: float, games_in_batch: int):
 	
 	# Award Conversion XP
 	if currency_manager:
-		var xp_awarded = currency_manager.award_conversion_xp(converted_amount, games_in_batch, efficiency_rating)
-		emit_signal("xp_awarded", "conversion_xp", xp_awarded, "conversion_completed")
+		xp_awarded.emit({
+		"type": "conversion",
+		"context": "conversion",
+		"data": {
+			"converted_amount": converted_amount,
+			"games_in_batch": games_in_batch,
+			"efficiency_rating": efficiency_rating
+		}
+	})
 
 func calculate_conversion_efficiency(converted_amount: float, games_in_batch: int) -> float:
 	# Efficiency based on batch size and conversion amount
@@ -301,6 +315,19 @@ func record_game(stats: GameStats):
 	total_games_played += 1
 	games_since_last_conversion += 1
 	pending_game_stats.append(stats)
+	xp_awarded.emit({
+		"type": "active",
+		"context": "game_completion",
+		"data": {
+			"final_score": stats.score,
+			"moves_made": stats.moves,
+			"max_tile_power": log(stats.max_tile) / log(2),  # Convert to power of 2
+			"efficiency_metrics": {
+				"merge_efficiency": stats.merge_efficiency,
+				"combo_peak": stats.combo_peak
+			}
+		}
+	})
 	
 func reset_stash():
 	games_since_last_conversion = 0

@@ -44,11 +44,24 @@ var upgrade_container: VBoxContainer
 func _ready():
 	_setup_ui()
 	_setup_input_handling()
-	CurrencyManager.currency_changed.connect(_on_currency_change)
+	CurrencyManager.currency_changed.connect(_on_xp_gained)
 	await get_tree().process_frame
 
-func _on_currency_change(currency_type: String, currency_amt: float):
-	if currency_type == tree_name:
+func _on_xp_gained(xp_type: String, amount: float):
+	print("TreeWidget received XP gain: ", xp_type, " = ", amount, " for tree: ", tree_name)
+	
+	# Map XP types to tree names
+	var tree_mapping = {
+		"active_xp": "Active",
+		"conversion_xp": "Conversion", 
+		"generator_xp": "Generators",
+		"discipline_xp": "Discipline",
+		"reset_xp": "Reset",
+		"lore_xp": "Lore"
+	}
+	
+	if tree_mapping.get(xp_type, "") == tree_name:
+		print("XP matches tree, updating header")
 		_update_expanded_header()
 
 func _setup_ui():
@@ -196,11 +209,12 @@ func setup_tree(p_tree_name: String, p_upgrade_manager: UpgradeManager):
 		return
 		
 	tree_instance = upgrade_manager.get_tree_instance(tree_name)
+	var test_xp = upgrade_manager.currency_manager.get_currency(tree_name)
+	print("Current XP for ", tree_name, ": ", test_xp)
 	
 	if not tree_instance:
 		push_error("TreeWidget: Could not find tree instance for " + tree_name)
 		return
-	
 	# Set up visual appearance
 	if tree_label:
 		_update_tree_display()
@@ -260,20 +274,74 @@ func _populate_expanded_view():
 		_add_tier_section(tier)
 
 func _update_expanded_header():
-	var tier_label = expanded_view.get_node("VBoxContainer/HBoxContainer/TierLabel")
-	var xp_label = expanded_view.get_node("VBoxContainer/HBoxContainer/XPLabel")
-	var progress_container = expanded_view.get_node("VBoxContainer/ProgressContainer")
+	if not expanded_view:
+		print("No expanded view available")
+		return
 	
-	if tier_label:
+	# Find the info header (it's a VBoxContainer child of expanded_view)
+	var info_header = null
+	for child in expanded_view.get_children():
+		if child.has_method("get_children"):  # It's a container
+			# Look for our stats container inside
+			for subchild in child.get_children():
+				if subchild is HBoxContainer:
+					info_header = child
+					break
+			if info_header:
+				break
+	
+	if not info_header:
+		print("Could not find info header with stats container")
+		# Debug: show what children exist
+		print("Children in expanded_view:")
+		for child in expanded_view.get_children():
+			print("  - ", child.name, " (", child.get_class(), ")")
+		return
+	
+	# Find the HBoxContainer with our labels
+	var stats_container = null
+	for child in info_header.get_children():
+		if child is HBoxContainer:
+			stats_container = child
+			break
+	
+	if not stats_container:
+		print("Could not find stats container")
+		return
+	
+	# Find the labels within the stats container
+	var tier_label = null
+	var xp_label = null
+	
+	for child in stats_container.get_children():
+		if child.name == "TierLabel":
+			tier_label = child
+		elif child.name == "XPLabel":
+			xp_label = child
+	
+	# Update the labels
+	if tier_label and tree_instance:
 		tier_label.text = "Tier: " + str(tree_instance.tree_data.current_tier)
+		print("Updated tier to: ", tree_instance.tree_data.current_tier)
+	else:
+		print("Tier label not found or no tree instance")
 	
 	if xp_label and tree_instance:
-		var xp_type = tree_instance._get_xp_currency_type()
+		var xp_type = tree_name.to_lower() + "_xp"
 		var current_xp = upgrade_manager.currency_manager.get_currency(xp_type)
 		xp_label.text = "XP: " + str(int(current_xp))
+		print("Updated XP for ", xp_type, " to: ", current_xp)
+	else:
+		print("XP label not found or no tree instance")
 	
-	# Update next tier progress
-	if progress_container:
+	# Handle progress container (it might be in the same info_header)
+	var progress_container = null
+	for child in info_header.get_children():
+		if child.name == "ProgressContainer":
+			progress_container = child
+			break
+	
+	if progress_container and tree_instance:
 		# Clear existing progress widgets
 		for child in progress_container.get_children():
 			child.queue_free()
