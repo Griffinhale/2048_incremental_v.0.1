@@ -2,13 +2,11 @@ extends Control
 class_name TreeWidget
 
 ## Individual upgrade tree widget with expandable upgrade display
-## Displays tree status, handles clicks for expansion, and supports drag-and-drop
+## Simple click-to-select functionality
 
 signal tree_clicked(tree_name: String)
 signal tree_expanded(tree_name: String)
 signal tree_collapsed(tree_name: String)
-signal tree_drag_started(tree_name: String)
-signal tree_dropped(tree_name: String, zone_name: String)
 
 ## Tree data
 @export var tree_name: String
@@ -18,11 +16,9 @@ var tree_instance: SkillTree
 ## UI state
 var is_selected: bool = false
 var is_expanded: bool = false
-var is_dragging: bool = false
-var drag_offset: Vector2
 
 ## Visual configuration
-var base_size: Vector2 = Vector2(100, 80)
+var base_size: Vector2 = Vector2(120, 100)
 var selected_size: Vector2 = Vector2(120, 100)
 var expanded_size: Vector2 = Vector2(300, 400)
 
@@ -46,10 +42,22 @@ func _ready():
 	_setup_input_handling()
 	CurrencyManager.currency_changed.connect(_on_xp_gained)
 	await get_tree().process_frame
+	
+	# Connect mouse entered/exited for debugging
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
+
+func _on_mouse_entered():
+	print("Mouse ENTERED TreeWidget: ", tree_name)
+	if not is_selected:
+		modulate = Color(1.1, 1.1, 1.1)  # Slight highlight when hovering
+
+func _on_mouse_exited():
+	print("Mouse EXITED TreeWidget: ", tree_name)
+	if not is_selected:
+		modulate = Color(1.0, 1.0, 1.0)  # Normal color
 
 func _on_xp_gained(xp_type: String, amount: float):
-	print("TreeWidget received XP gain: ", xp_type, " = ", amount, " for tree: ", tree_name)
-	
 	# Map XP types to tree names
 	var tree_mapping = {
 		"active_xp": "Active",
@@ -61,7 +69,6 @@ func _on_xp_gained(xp_type: String, amount: float):
 	}
 	
 	if tree_mapping.get(xp_type, "") == tree_name:
-		print("XP matches tree, updating header")
 		_update_expanded_header()
 
 func _setup_ui():
@@ -196,9 +203,33 @@ func _create_tree_info_header() -> Control:
 	return header
 
 func _setup_input_handling():
-	# Enable mouse input
+	print("Setting up input handling for: ", tree_name)
+	
+	# Enable mouse input on the main widget
 	mouse_filter = Control.MOUSE_FILTER_PASS
+	
+	# Recursively set mouse filters on all children
+	_set_mouse_filters_recursive(self)
+	
+	print("Set up mouse filters recursively")
 
+func _set_mouse_filters_recursive(node: Node):
+	for child in node.get_children():
+		if child is Control:
+			# Special handling for interactive elements
+			if child == expand_button:
+				# Keep expand button clickable
+				child.mouse_filter = Control.MOUSE_FILTER_PASS
+			elif child.name.ends_with("Button") or child is Button:
+				# Keep other buttons clickable
+				child.mouse_filter = Control.MOUSE_FILTER_PASS
+			else:
+				# Everything else should pass input through
+				child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		
+		# Recurse into children
+		_set_mouse_filters_recursive(child)
+		
 func setup_tree(p_tree_name: String, p_upgrade_manager: UpgradeManager):
 	print("Setting up tree: ", p_tree_name)
 	tree_name = p_tree_name
@@ -209,12 +240,11 @@ func setup_tree(p_tree_name: String, p_upgrade_manager: UpgradeManager):
 		return
 		
 	tree_instance = upgrade_manager.get_tree_instance(tree_name)
-	var test_xp = upgrade_manager.currency_manager.get_currency(tree_name)
-	print("Current XP for ", tree_name, ": ", test_xp)
 	
 	if not tree_instance:
 		push_error("TreeWidget: Could not find tree instance for " + tree_name)
 		return
+	
 	# Set up visual appearance
 	if tree_label:
 		_update_tree_display()
@@ -274,15 +304,13 @@ func _populate_expanded_view():
 		_add_tier_section(tier)
 
 func _update_expanded_header():
-	if not expanded_view:
-		print("No expanded view available")
+	if not expanded_view or not tree_instance:
 		return
 	
-	# Find the info header (it's a VBoxContainer child of expanded_view)
+	# Find the info header
 	var info_header = null
 	for child in expanded_view.get_children():
-		if child.has_method("get_children"):  # It's a container
-			# Look for our stats container inside
+		if child.has_method("get_children"):
 			for subchild in child.get_children():
 				if subchild is HBoxContainer:
 					info_header = child
@@ -291,11 +319,6 @@ func _update_expanded_header():
 				break
 	
 	if not info_header:
-		print("Could not find info header with stats container")
-		# Debug: show what children exist
-		print("Children in expanded_view:")
-		for child in expanded_view.get_children():
-			print("  - ", child.name, " (", child.get_class(), ")")
 		return
 	
 	# Find the HBoxContainer with our labels
@@ -306,7 +329,6 @@ func _update_expanded_header():
 			break
 	
 	if not stats_container:
-		print("Could not find stats container")
 		return
 	
 	# Find the labels within the stats container
@@ -320,45 +342,13 @@ func _update_expanded_header():
 			xp_label = child
 	
 	# Update the labels
-	if tier_label and tree_instance:
+	if tier_label:
 		tier_label.text = "Tier: " + str(tree_instance.tree_data.current_tier)
-		print("Updated tier to: ", tree_instance.tree_data.current_tier)
-	else:
-		print("Tier label not found or no tree instance")
 	
-	if xp_label and tree_instance:
+	if xp_label:
 		var xp_type = tree_name.to_lower() + "_xp"
 		var current_xp = upgrade_manager.currency_manager.get_currency(xp_type)
 		xp_label.text = "XP: " + str(int(current_xp))
-		print("Updated XP for ", xp_type, " to: ", current_xp)
-	else:
-		print("XP label not found or no tree instance")
-	
-	# Handle progress container (it might be in the same info_header)
-	var progress_container = null
-	for child in info_header.get_children():
-		if child.name == "ProgressContainer":
-			progress_container = child
-			break
-	
-	if progress_container and tree_instance:
-		# Clear existing progress widgets
-		for child in progress_container.get_children():
-			child.queue_free()
-		
-		var next_tier = tree_instance.tree_data.current_tier + 1
-		if next_tier <= 3:
-			var progress = tree_instance.get_tier_progress(next_tier)
-			
-			var progress_label = Label.new()
-			progress_label.text = "Next Tier Progress: " + str(int(progress * 100)) + "%"
-			progress_label.add_theme_font_size_override("font_size", 10)
-			progress_container.add_child(progress_label)
-			
-			var tier_progress_bar = ProgressBar.new()
-			tier_progress_bar.value = progress * 100
-			tier_progress_bar.custom_minimum_size = Vector2(200, 16)
-			progress_container.add_child(tier_progress_bar)
 
 func _add_tier_section(tier: int):
 	# Tier header
@@ -416,7 +406,7 @@ func _create_compact_upgrade_button(upgrade_id: String) -> Control:
 	if upgrade_info.get("purchased", false):
 		button_text += " ✓"
 		upgrade_button.disabled = true
-		upgrade_button.modulate = Color(0.8, 1.0, 0.8)  # Light green tint for purchased
+		upgrade_button.modulate = Color(0.8, 1.0, 0.8)
 	else:
 		button_text += " (" + str(upgrade_info.get("cost", 0)) + " XP)"
 	
@@ -559,6 +549,12 @@ func set_selected(selected: bool):
 	is_selected = selected
 	_update_tree_styling()
 	
+	# Visual feedback for selection
+	if selected:
+		modulate = Color(1.2, 1.2, 1.2)
+	else:
+		modulate = Color(1.0, 1.0, 1.0)
+	
 	# Only animate size if not expanded
 	if not is_expanded:
 		var tween = create_tween()
@@ -615,108 +611,27 @@ func _on_tier_indicator_draw():
 		
 		tier_indicator.draw_circle(dot_pos, dot_size / 2, dot_color)
 
-## Input handling
+## SIMPLIFIED INPUT HANDLING - NO DRAG AND DROP
 func _gui_input(event):
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				# Check if clicking on compact view area (not expanded area)
-				if not is_expanded or _is_click_in_compact_area(event.position):
-					_start_interaction(event.position)
-			else:
-				_end_interaction(event.position)
+	print("TreeWidget _gui_input called for: ", tree_name, " with event: ", event)
 	
-	elif event is InputEventMouseMotion and is_dragging:
-		_handle_drag(event.position)
-
-func _is_click_in_compact_area(position: Vector2) -> bool:
-	if not compact_view:
-		return true
-	
-	var compact_rect = compact_view.get_rect()
-	return compact_rect.has_point(position)
-
-func _start_interaction(position: Vector2):
-	# Start potential drag or click
-	drag_offset = position
-	
-	# Short delay to distinguish between click and drag
-	var timer = Timer.new()
-	add_child(timer)
-	timer.wait_time = 0.1
-	timer.one_shot = true
-	timer.timeout.connect(_check_for_drag)
-	timer.start()
-
-func _check_for_drag():
-	# If mouse hasn't moved much, treat as click
-	var current_mouse_pos = get_local_mouse_position()
-	if current_mouse_pos.distance_to(drag_offset) < 10:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		print("TreeWidget received LEFT CLICK for: ", tree_name)
+		print("Event position: ", event.position)
+		print("Widget rect: ", get_rect())
+		
+		# Only handle clicks outside the expand button area
+		if expand_button and expand_button.get_global_rect().has_point(event.global_position):
+			print("Click was on expand button, ignoring for tree selection")
+			return
+		
 		_handle_click()
-	else:
-		_start_drag()
+		accept_event()
 
 func _handle_click():
+	print("TreeWidget _handle_click called for: ", tree_name)
+	_toggle_expansion()
 	tree_clicked.emit(tree_name)
-
-func _start_drag():
-	# Only allow dragging if not expanded
-	if not is_expanded:
-		is_dragging = true
-		modulate = Color(1.0, 1.0, 1.0, 0.8)
-		tree_drag_started.emit(tree_name)
-
-func _handle_drag(position: Vector2):
-	if not is_dragging:
-		return
-	
-	# Move widget with mouse
-	global_position = get_global_mouse_position() - drag_offset
-
-func _end_interaction(position: Vector2):
-	if is_dragging:
-		_end_drag()
-	
-	# Clean up any timers
-	for child in get_children():
-		if child is Timer:
-			child.queue_free()
-
-func _end_drag():
-	is_dragging = false
-	modulate = Color.WHITE
-	
-	# Determine drop zone
-	var drop_zone = _detect_drop_zone()
-	if drop_zone != "":
-		tree_dropped.emit(tree_name, drop_zone)
-	
-	# Snap back to original position if no valid drop
-	_snap_back_to_container()
-
-func _detect_drop_zone() -> String:
-	# Get the upgrades panel to check drop zones
-	var upgrades_panel = get_tree().get_first_node_in_group("upgrades_panel")
-	if not upgrades_panel:
-		return ""
-	
-	var mouse_pos = get_global_mouse_position()
-	
-	# Check each zone
-	for zone_name in ["keystone", "advanced", "starter"]:
-		var zone_container = upgrades_panel.zone_configs[zone_name]["container"]
-		var zone_rect = zone_container.get_global_rect()
-		
-		if zone_rect.has_point(mouse_pos):
-			return zone_name
-	
-	return ""
-
-func _snap_back_to_container():
-	# Return to original position in container
-	var tween = create_tween()
-	tween.tween_property(self, "position", Vector2.ZERO, 0.3)
-	tween.set_ease(Tween.EASE_OUT)
 
 ## Public interface methods
 func get_tree_info() -> Dictionary:
@@ -731,19 +646,3 @@ func get_tree_info() -> Dictionary:
 		"keystone_unlocked": tree_instance.tree_data.keystone_unlocked,
 		"is_expanded": is_expanded
 	}
-
-func can_move_to_tier(required_tier: int) -> bool:
-	if not tree_instance:
-		return false
-	
-	return tree_instance.tree_data.current_tier >= required_tier
-
-## Animation helpers
-func highlight_as_valid_drop():
-	modulate = Color(1.2, 1.2, 1.2, 1.0)
-
-func highlight_as_invalid_drop():
-	modulate = Color(0.8, 0.8, 0.8, 0.7)
-
-func clear_highlight():
-	modulate = Color.WHITE

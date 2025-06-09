@@ -69,7 +69,7 @@ func _ready():
 	# Initialize game content
 	_create_tree_widgets()
 	_organize_trees_by_tier()
-	
+	_collapse_all_trees()
 	# Close tree detail panel initially
 	tree_detail_panel.visible = false
 	add_to_group("upgrades_panel")
@@ -238,13 +238,8 @@ func _create_tree_widget(tree_name: String) -> Control:
 	var widget = tree_widget.instantiate()
 	print("Creating widget for: ", tree_name)
 	
-	# Configure the widget
+	# Configure the widget (no need to add to scene tree for this)
 	widget.setup_tree(tree_name, upgrade_manager)
-	
-	# Connect widget signals
-	widget.tree_clicked.connect(_on_tree_widget_clicked.bind(tree_name))
-	widget.tree_drag_started.connect(_on_tree_drag_started.bind(tree_name))
-	widget.tree_dropped.connect(_on_tree_dropped)
 	
 	print("Created widget for: " + tree_name)
 	return widget
@@ -256,7 +251,7 @@ func _organize_trees_by_tier():
 		if container:
 			# Keep the label (first child) and remove tree widgets
 			var children_to_remove = []
-			for i in range(1, container.get_child_count()):  # Skip first child (label)
+			for i in range(1, container.get_child_count()):
 				var child = container.get_child(i)
 				if child in tree_widgets.values():
 					children_to_remove.append(child)
@@ -273,6 +268,33 @@ func _organize_trees_by_tier():
 		var container = zone_configs[target_zone]["container"]
 		
 		container.add_child(tree_widgets[tree_name])
+	
+	# NOW connect signals after all widgets are in their final containers
+	_connect_all_widget_signals()
+
+func _connect_all_widget_signals():
+	print("=== CONNECTING SIGNALS FOR ALL WIDGETS ===")
+	
+	for tree_name in tree_widgets.keys():
+		var widget = tree_widgets[tree_name]
+		
+		# Disconnect any existing connections first (in case we're reconnecting)
+		if widget.tree_clicked.is_connected(_on_tree_widget_clicked):
+			widget.tree_clicked.disconnect(_on_tree_widget_clicked)
+		
+		print("Connecting signals for: ", tree_name)
+		
+		# Connect with proper binding
+		var connection_result = widget.tree_clicked.connect(_on_tree_widget_clicked)
+		print("Connection result: ", connection_result, " for: ", tree_name)
+		
+		# Verify connection
+		if widget.tree_clicked.is_connected(_on_tree_widget_clicked):
+			print("✓ Signal successfully connected for: ", tree_name)
+		else:
+			print("✗ ERROR: Failed to connect signal for: ", tree_name)
+	
+	print("=== FINISHED CONNECTING SIGNALS ===")
 
 func _determine_tree_zone(tree_name: String, current_tier: int) -> String:
 	# Determine which zone a tree should be in based on its tier
@@ -291,43 +313,90 @@ func _determine_tree_zone(tree_name: String, current_tier: int) -> String:
 	# Default to starter zone
 	return "starter"
 
-## Tree selection and detail view
 func _on_tree_widget_clicked(tree_name: String):
+	print("=== TREE CLICKED SIGNAL RECEIVED ===")
+	print("Tree name: ", tree_name)
+	print("Current selected_tree: ", selected_tree)
+	
 	if selected_tree == tree_name:
-		# Deselect if clicking the same tree
+		print("Same tree clicked, deselecting and collapsing")
 		_deselect_tree()
 	else:
+		print("Different tree clicked, selecting and expanding")
 		_select_tree(tree_name)
 
 func _select_tree(tree_name: String):
-	# Deselect previous tree
-	if selected_tree != "":
-		_deselect_tree()
+	print("=== SELECTING TREE ===")
+	print("Tree name: ", tree_name)
+	
+	# Deselect and collapse previous tree
+	_deselect_tree()
+	print("Previous tree deselected and collapsed")
 	
 	selected_tree = tree_name
+	print("Set selected_tree to: ", selected_tree)
 	
-	# Update widget visual state
+	# Update widget visual state and expand the selected tree
 	if tree_widgets.has(tree_name):
-		tree_widgets[tree_name].set_selected(true)
+		var widget = tree_widgets[tree_name]
+		widget.set_selected(true)
+		
+		# Expand the selected tree
+		if not widget.is_expanded:
+			widget._toggle_expansion()
+			print("Expanded selected tree: ", tree_name)
+		
+		print("Set widget selected state to true")
+	else:
+		print("ERROR: Widget not found for tree: ", tree_name)
 	
 	# Show tree detail panel
+	print("Showing tree details")
 	_show_tree_details(tree_name)
 	
 	tree_selected.emit(tree_name)
+	print("Emitted tree_selected signal")
 
 func _deselect_tree():
+	print("=== DESELECTING TREE ===")
+	print("Current selected_tree: ", selected_tree)
+	
 	if selected_tree != "":
-		# Update widget visual state
+		# Update widget visual state and collapse
 		if tree_widgets.has(selected_tree):
-			tree_widgets[selected_tree].set_selected(false)
+			var widget = tree_widgets[selected_tree]
+			widget.set_selected(false)
+			
+			# Collapse the deselected tree
+			if widget.is_expanded:
+				widget._toggle_expansion()
+				print("Collapsed deselected tree: ", selected_tree)
+			
+			print("Set widget selected state to false for: ", selected_tree)
+		else:
+			print("ERROR: Widget not found for selected tree: ", selected_tree)
 		
 		selected_tree = ""
+		print("Cleared selected_tree")
 		
 		# Hide tree detail panel
 		tree_detail_panel.visible = false
+		print("Hid tree detail panel")
 		
 		tree_deselected.emit()
+		print("Emitted tree_deselected signal")
+	else:
+		print("No tree was selected")
 
+# Also add this method to collapse all trees (useful for initialization)
+func _collapse_all_trees():
+	print("=== COLLAPSING ALL TREES ===")
+	for tree_name in tree_widgets.keys():
+		var widget = tree_widgets[tree_name]
+		if widget.is_expanded:
+			widget._toggle_expansion()
+			print("Collapsed tree: ", tree_name)
+			
 func _show_tree_details(tree_name: String):
 	print("showing tree "+tree_name)
 	# Clear existing content
@@ -335,8 +404,8 @@ func _show_tree_details(tree_name: String):
 		child.queue_free()
 	
 	# Create tree detail view
-	var detail_view = _create_tree_detail_view(tree_name)
-	tree_detail_content.add_child(detail_view)
+	#var detail_view = _create_tree_detail_view(tree_name)
+	#tree_detail_content.add_child(detail_view)
 	
 	# Show and animate the panel
 	tree_detail_panel.visible = true
@@ -449,7 +518,7 @@ func _create_upgrade_list(tree_name: String) -> Control:
 	
 	return scroll_container
 
-func _get_tier_upgrades(tree: Tree, tier: int) -> Array:
+func _get_tier_upgrades(tree: SkillTree, tier: int) -> Array:
 	var tier_upgrades = []
 	
 	for upgrade_id in tree.upgrade_definitions.keys():
@@ -490,65 +559,6 @@ func _create_upgrade_button(tree_name: String, upgrade_id: String) -> Control:
 	button_container.add_child(description)
 	
 	return button_container
-
-## Drag and drop handling
-func _on_tree_drag_started(tree_name: String):
-	# Visual feedback for drag operation
-	_highlight_valid_drop_zones(tree_name)
-
-func _on_tree_dropped(tree_name: String, drop_zone: String):
-	# Handle tree movement between zones
-	if _can_tree_move_to_zone(tree_name, drop_zone):
-		_move_tree_to_zone(tree_name, drop_zone)
-	
-	_clear_drop_zone_highlights()
-
-func _highlight_valid_drop_zones(tree_name: String):
-	# Add visual feedback for valid drop zones
-	var tree = upgrade_manager.get_tree_instance(tree_name)
-	var current_tier = tree.tree_data.current_tier
-	
-	for zone_name in zone_configs.keys():
-		var zone_config = zone_configs[zone_name]
-		var container = zone_config["container"]
-		
-		if _can_tree_move_to_zone(tree_name, zone_name):
-			container.modulate = Color.WHITE
-		else:
-			container.modulate = Color(0.5, 0.5, 0.5, 0.7)
-
-func _clear_drop_zone_highlights():
-	for zone_name in zone_configs.keys():
-		var container = zone_configs[zone_name]["container"]
-		container.modulate = Color.WHITE
-
-func _can_tree_move_to_zone(tree_name: String, zone_name: String) -> bool:
-	var tree = upgrade_manager.get_tree_instance(tree_name)
-	var current_tier = tree.tree_data.current_tier
-	var zone_config = zone_configs[zone_name]
-	
-	# Check tier requirement
-	if current_tier < zone_config["requires_tier"]:
-		return false
-	
-	# Check zone capacity (account for label taking up first slot)
-	var current_trees_in_zone = zone_config["container"].get_child_count() - 1
-	if current_trees_in_zone >= zone_config["max_trees"]:
-		# Allow if tree is already in this zone
-		return tree_widgets[tree_name].get_parent() == zone_config["container"]
-	
-	return true
-
-func _move_tree_to_zone(tree_name: String, zone_name: String):
-	var widget = tree_widgets[tree_name]
-	var new_container = zone_configs[zone_name]["container"]
-	
-	# Remove from current parent
-	if widget.get_parent():
-		widget.get_parent().remove_child(widget)
-	
-	# Add to new container
-	new_container.add_child(widget)
 
 ## Signal handlers
 func _on_upgrade_purchased(tree_name: String, upgrade_id: String):

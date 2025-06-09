@@ -34,8 +34,8 @@ func _on_generator_updated(id: String, yield_val: float):
 				update_generator_entry_data(child, gen)
 			break
 
-func _on_generator_unlocked(gen_id: String):
-	print("Generator unlocked: ", gen_id)
+func _on_generator_unlocked(gens: Array):
+	print("Generator unlocked: ", gens)
 	# Refresh the entire panel when a new generator is unlocked
 	#populate_generators()
 
