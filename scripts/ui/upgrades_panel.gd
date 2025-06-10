@@ -330,8 +330,9 @@ func _select_tree(tree_name: String):
 	print("Tree name: ", tree_name)
 	
 	# Deselect and collapse previous tree
-	_deselect_tree()
-	print("Previous tree deselected and collapsed")
+	if selected_tree != "":
+		_deselect_tree()
+		print("Previous tree deselected and collapsed")
 	
 	selected_tree = tree_name
 	print("Set selected_tree to: ", selected_tree)
@@ -350,9 +351,6 @@ func _select_tree(tree_name: String):
 	else:
 		print("ERROR: Widget not found for tree: ", tree_name)
 	
-	# Show tree detail panel
-	print("Showing tree details")
-	_show_tree_details(tree_name)
 	
 	tree_selected.emit(tree_name)
 	print("Emitted tree_selected signal")
